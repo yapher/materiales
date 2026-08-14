@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Polvos Coladores{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="titulo-app"><i class="bi bi-house"></i> Bienvenido</h1>
+    <p class="subtitulo">Predicción de propiedades de polvos coladores mediante Machine Learning</p>
+</div>
+
+<div class="card panel mb-4">
+    <div class="card-body">
+        <h5 class="panel-titulo"><i class="bi bi-info-circle"></i> Cómo funciona</h5>
+        <p class="text-muted">
+            Este sistema predice propiedades de polvos coladores (mezclas usadas en la
+            colada continua de acero) a partir de su composición química y la
+            temperatura de proceso, usando modelos de Machine Learning entrenados
+            sobre el dataset cargado.
+        </p>
+        <ol class="text-muted">
+            <li>Entrená el modelo (puede tardar unos minutos; podés seguir usando la app mientras corre).</li>
+            <li>Armá tu mezcla y obtené la predicción.</li>
+            <li>Guardá la predicción en tu dataset o exportala a PDF.</li>
+        </ol>
+        {% if usuario_sesion %}
+        <a href="{{ url_for('mezclas.index') }}" class="btn btn-accion">
+            <i class="bi bi-beaker"></i> Ir a Predicción
+        </a>
+        {% else %}
+        <a href="{{ url_for('auth.registro') }}" class="btn btn-accion">
+            <i class="bi bi-person-plus"></i> Crear cuenta
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-agregar">
+            <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sección de la Desarrolladora -->
+<div class="card panel mt-4">
+    <div class="card-body text-center">
+        <h5 class="panel-titulo"><i class="bi bi-person-badge"></i> Desarrolladora</h5>
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <!-- Foto de perfil (opcional) -->
+                <img src="{{ url_for('static', filename='img/jazmin.png') }}" 
+                     alt="Jazmín Herasimovich" 
+                     class="img-fluid rounded-circle" 
+                     style="max-width: 150px;">
+            </div>
+            <div class="col-md-9 text-start">
+                <h4 class="panel-titulo">Jazmín Herasimovich</h4>
+                <p class="text-muted">
+                    <i class="bi bi-badge-cc"></i> Ingeniera Metalúrgica<br>
+                    <i class="bi bi-building"></i> UTN - San Nicolás de los Arroyos<br>
+                    <i class="bi bi-envelope"></i> jazmin.herasimovich@utn.edu.ar
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="https://github.com/jazminherasimovich" class="btn btn-agregar btn-sm" target="_blank">
+                        <i class="bi bi-github"></i> GitHub
+                    </a>
+                    <a href="https://www.linkedin.com/in/jazmin-herasimovich-2b808832a/" target="_blank" rel="noopener" class="btn-red-social btn-linkedin">
+                        <i class="bi bi-linkedin"></i> LinkedIn
+                    </a>
+                    <a href="https://www.instagram.com/jazminherasi" target="_blank" rel="noopener" class="btn-red-social btn-instagram">
+                        <i class="bi bi-instagram"></i> Instagram
+                    </a>
+                    <a href="https://x.com/jazminherasi" target="_blank" rel="noopener" class="btn-red-social btn-x">
+                        <i class="bi bi-twitter-x"></i> X
+                    </a>
+                </div>
+                <p class="text-muted mt-2 small">
+                    <i class="bi bi-info-circle"></i> Especialista en procesos de colado, 
+                    metalurgia de polvos y análisis de datos.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

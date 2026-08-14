@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Ayuda - Polvos Coladores{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="titulo-app"><i class="bi bi-question-circle"></i> Ayuda</h1>
+    <p class="subtitulo">Guías, teoría de los modelos y documentación técnica</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-{{ '4' if usuario_sesion.es_admin else '6' }}">
+        <div class="card panel h-100">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-book" style="font-size:2.2rem; color:var(--accent);"></i>
+                <h5 class="panel-titulo mt-3">Tutorial de uso</h5>
+                <p class="text-muted flex-grow-1">
+                    Guía paso a paso: cómo entrenar tu modelo, armar una mezcla y
+                    predecir propiedades.
+                </p>
+                <a href="{{ url_for('ayuda.tutorial') }}" class="btn btn-accion">
+                    <i class="bi bi-arrow-right"></i> Ver tutorial
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-{{ '4' if usuario_sesion.es_admin else '6' }}">
+        <div class="card panel h-100">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-diagram-3" style="font-size:2.2rem; color:var(--accent);"></i>
+                <h5 class="panel-titulo mt-3">Teoría de los modelos</h5>
+                <p class="text-muted flex-grow-1">
+                    Documentación técnica de los algoritmos de Machine Learning,
+                    validación cruzada y métricas utilizadas.
+                </p>
+                <a href="{{ url_for('ayuda.modelos') }}" class="btn btn-accion">
+                    <i class="bi bi-arrow-right"></i> Ver documentación
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if usuario_sesion.es_admin %}
+    <div class="col-md-4">
+        <div class="card panel h-100" style="border-color: var(--accent);">
+            <div class="card-body text-center d-flex flex-column">
+                <i class="bi bi-code-slash" style="font-size:2.2rem; color:var(--accent);"></i>
+                <h5 class="panel-titulo mt-3">Documentación técnica<br>del sistema</h5>
+                <p class="text-muted flex-grow-1">
+                    <span class="badge-admin">solo admin</span><br>
+                    Cómo está construida la aplicación por dentro: arquitectura,
+                    seguridad, aislamiento por usuario, y más.
+                </p>
+                <a href="{{ url_for('ayuda.sistema') }}" class="btn btn-accion">
+                    <i class="bi bi-arrow-right"></i> Ver documentación
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

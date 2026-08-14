@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} - Polvos Coladores{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h1 class="titulo-app"><i class="bi {{ icono }}"></i> {{ titulo }}</h1>
+    {% if subtitulo %}<p class="subtitulo">{{ subtitulo }}</p>{% endif %}
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <a href="{{ url_for('ayuda.index') }}" class="btn btn-agregar">
+        <i class="bi bi-arrow-left"></i> Volver a Ayuda
+    </a>
+    <a href="{{ url_for(pdf_url_endpoint) }}" class="btn btn-accion">
+        <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+    </a>
+</div>
+
+{% for seccion in secciones %}
+<div class="card panel mb-4 seccion-doc">
+    <div class="card-body">
+        <h5 class="panel-titulo">{{ seccion.titulo }}</h5>
+
+        {% for parrafo in seccion.get('parrafos', []) %}
+        <p class="text-muted">{{ parrafo }}</p>
+        {% endfor %}
+
+        {% if seccion.get('items') %}
+        <ul class="text-muted">
+            {% for item in seccion.get('items') %}
+            <li class="mb-1">{{ item }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if seccion.get('codigo') %}
+        <pre class="p-3 mt-2" style="background:#251c3d; border-radius:0.6rem; color:#c9a3f2; overflow-x:auto; font-size:0.82rem;"><code>{{ seccion.codigo }}</code></pre>
+        {% endif %}
+
+        {% if seccion.get('imagen') %}
+        <div class="figura-doc">
+            <img src="{{ url_for('static', filename='img/' + seccion.imagen) }}"
+                 alt="{{ seccion.get('imagen_alt', seccion.titulo) }}"
+                 loading="lazy">
+            {% if seccion.get('imagen_alt') %}
+            <p class="pie-figura">{{ seccion.imagen_alt }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if seccion.get('referencias') %}
+        <div class="bloque-referencias">
+            <p class="mb-2"><i class="bi bi-link-45deg"></i> <strong>Para profundizar</strong></p>
+            <ul class="lista-referencias">
+                {% for ref in seccion.get('referencias') %}
+                <li><a href="{{ ref.url }}" target="_blank" rel="noopener">{{ ref.texto }}</a> <i class="bi bi-box-arrow-up-right"></i></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

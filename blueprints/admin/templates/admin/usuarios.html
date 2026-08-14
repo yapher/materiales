@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios - Polvos Coladores{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="titulo-app"><i class="bi bi-people"></i> Usuarios</h1>
+    <p class="subtitulo">Administración de usuarios: roles, eliminación y bajas</p>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{{ url_for('admin.index') }}" class="btn btn-agregar">
+        <i class="bi bi-arrow-left"></i> Volver a Admin
+    </a>
+</div>
+
+<div id="mensajeUsuarios" class="mensaje-box mb-3" style="display:none;">
+    <span id="mensajeUsuariosTexto"></span>
+</div>
+
+<div class="card panel">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table tabla-moderna">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Ingreso</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaUsuarios"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar usuario -->
+<div class="modal fade" id="modalEliminarUsuario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content panel">
+            <div class="modal-header" style="border-bottom:1px solid var(--panel-border);">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Eliminar usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">¿Estás seguro de eliminar al usuario <strong id="eliminarUsuarioNombre"></strong>?</p>
+                <p class="text-muted small" style="color: #e07f7f !important;">
+                    <i class="bi bi-info-circle"></i> Esta acción eliminará todos sus datos: dataset, modelo y configuración. Es irreversible.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--panel-border);">
+                <button type="button" class="btn btn-agregar" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-accion" id="confirmarEliminarUsuario" style="background: #e07f7f !important; color: #14101f !important;">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let usuarioActualNombre = null;
+let usuarioAEliminar = null;
+
+function setMensajeUsuarios(texto, esError) {
+    const box = document.getElementById('mensajeUsuarios');
+    const span = document.getElementById('mensajeUsuariosTexto');
+    span.textContent = texto;
+    box.style.borderColor = esError ? '#e07f7f' : '';
+    box.style.color = esError ? '#e0a97f' : '';
+    box.style.display = texto ? 'block' : 'none';
+}
+
+function cargarUsuarios() {
+    fetch('{{ url_for("admin.usuarios_lista") }}')
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+            usuarioActualNombre = data.usuario_actual;
+            renderUsuarios(data.usuarios);
+        })
+        .catch(err => setMensajeUsuarios(err.message, true));
+}
+
+function renderUsuarios(usuarios) {
+    const tbody = document.getElementById('tablaUsuarios');
+
+    tbody.innerHTML = usuarios.map(u => {
+        const esYo = u.username === usuarioActualNombre;
+        const ingreso = u.proveedor ? `<span title="Ingresó con ${u.proveedor}"><i class="bi bi-box-arrow-in-right"></i> ${u.proveedor}</span>` : 'Usuario/contraseña';
+
+        let botones = '';
+        
+        if (esYo) {
+            botones = `<span class="text-muted">(vos)</span>`;
+        } else {
+            // Botón para cambiar rol
+            botones += `<button class="btn btn-accion btn-sm me-1" onclick="cambiarRol('${u.username}', ${!u.es_admin})" style="background: ${u.es_admin ? '#e07f7f' : 'var(--accent)'} !important; color: ${u.es_admin ? '#fff' : '#14101f'} !important;">
+                   ${u.es_admin ? '<i class="bi bi-person-dash"></i> Quitar admin' : '<i class="bi bi-person-check"></i> Hacer admin'}
+               </button>`;
+            
+            // Botón para eliminar usuario (solo si no es el admin semilla)
+            if (u.username !== 'jazmin') {
+                botones += `<button class="btn btn-accion btn-sm" onclick="abrirEliminarUsuario('${u.username}')" style="background: #e07f7f !important; color: #fff !important;">
+                       <i class="bi bi-trash"></i> Eliminar
+                   </button>`;
+            } else {
+                botones += `<span class="text-muted" title="Usuario administrador principal no se puede eliminar"><i class="bi bi-shield-lock"></i> Protegido</span>`;
+            }
+        }
+
+        return `
+            <tr>
+                <td><span class="var-nombre">${u.username}</span></td>
+                <td>${u.email || '<span class="text-muted">—</span>'}</td>
+                <td>${ingreso}</td>
+                <td>${u.es_admin ? '<span class="r2-valor r2-txt-bueno">Admin</span>' : '<span class="text-muted">Usuario</span>'}</td>
+                <td>${botones}</td>
+            </tr>`;
+    }).join('');
+}
+
+function cambiarRol(username, esAdmin) {
+    fetch(`/admin/usuarios/${username}/rol`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ es_admin: esAdmin }),
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+            setMensajeUsuarios(data.mensaje, false);
+            cargarUsuarios();
+        })
+        .catch(err => setMensajeUsuarios(err.message, true));
+}
+
+function abrirEliminarUsuario(username) {
+    usuarioAEliminar = username;
+    document.getElementById('eliminarUsuarioNombre').textContent = username;
+    const modal = new bootstrap.Modal(document.getElementById('modalEliminarUsuario'));
+    modal.show();
+}
+
+document.getElementById('confirmarEliminarUsuario').addEventListener('click', function() {
+    if (!usuarioAEliminar) return;
+    
+    const username = usuarioAEliminar;
+    setMensajeUsuarios(`Eliminando usuario ${username}...`, false);
+    
+    fetch(`/admin/usuarios/${username}`, {
+        method: 'DELETE',
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) throw new Error(data.error);
+        setMensajeUsuarios(data.mensaje, false);
+        
+        // Cerrar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalEliminarUsuario'));
+        if (modal) modal.hide();
+        
+        cargarUsuarios();
+    })
+    .catch(err => {
+        setMensajeUsuarios(err.message, true);
+    });
+});
+
+cargarUsuarios();
+</script>
+{% endblock %}

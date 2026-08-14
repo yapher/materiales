@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: ia-mezclas
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 1 --threads 4 --timeout 300
+    healthCheckPath: /healthz
+
+    # Si tu plan de Render no permite discos, eliminá esta sección.
+    # Pero entonces data/users, modelos y usuarios.json no persistirán.
+    disk:
+      name: ia-mezclas-data
+      mountPath: /opt/data
+      sizeGB: 1
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: FLASK_DEBUG
+        value: "0"
+
+      - key: SESSION_COOKIE_SECURE
+        value: "1"
+
+      - key: DATA_DIR
+        value: /opt/data
+
+      - key: ADMIN_SEED_USUARIO
+        value: jazmin
+
+      - key: ADMIN_SEED_PASSWORD
+        sync: false
+
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+      - key: X_CLIENT_ID
+        sync: false
+
+      - key: X_CLIENT_SECRET
+        sync: false

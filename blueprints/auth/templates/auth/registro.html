@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Registrarse - Polvos Coladores{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card panel">
+            <div class="card-body">
+                <h5 class="panel-titulo text-center mb-4"><i class="bi bi-person-plus"></i> Crear cuenta</h5>
+
+                {% if error %}
+                <div class="mensaje-box mb-3" style="border-color:#e07f7f; color:#e0a97f;">{{ error }}</div>
+                {% endif %}
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label label-sm">Usuario</label>
+                        <input type="text" name="username" class="form-control" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9_-]+" title="Letras, números, - o _">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-sm">Email (opcional)</label>
+                        <input type="email" name="email" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-sm">Contraseña</label>
+                        <input type="password" name="password" class="form-control" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-sm">Repetir contraseña</label>
+                        <input type="password" name="password2" class="form-control" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-accion w-100 mb-3">
+                        <i class="bi bi-person-plus"></i> Crear cuenta
+                    </button>
+                </form>
+
+                {% if google_habilitado or x_habilitado %}
+                <div class="text-center text-muted mb-3">— o —</div>
+                <div class="d-grid gap-2 mb-3">
+                    {% if google_habilitado %}
+                    <a href="{{ url_for('auth.login_google') }}" class="btn btn-agregar">
+                        <i class="bi bi-google"></i> Continuar con Google
+                    </a>
+                    {% endif %}
+                    {% if x_habilitado %}
+                    <a href="{{ url_for('auth.login_x') }}" class="btn btn-agregar">
+                        <i class="bi bi-twitter-x"></i> Continuar con X
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <p class="text-center text-muted mb-0">
+                    ¿Ya tenés cuenta? <a href="{{ url_for('auth.login') }}">Iniciá sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

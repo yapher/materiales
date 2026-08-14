@@ -1,0 +1,611 @@
+:root {
+    --bg: #14101f;
+    --panel: #1e1730;
+    --panel-border: #2f2547;
+    --accent: #88c999;
+    --accent-soft: rgba(136, 201, 153, 0.15);
+    --violet: #6b4fa0;
+    --text: #f1eefc;
+    --text-muted: #9c93b8;
+}
+
+body {
+    background: radial-gradient(circle at top, #241a3d, var(--bg) 60%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+}
+
+.titulo-app {
+    font-weight: 700;
+    font-size: 2.2rem;
+    background: linear-gradient(90deg, var(--accent), var(--violet));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.subtitulo {
+    color: var(--text-muted);
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.panel-titulo {
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+.form-select, .form-control {
+    background-color: #251c3d;
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+}
+
+.form-select:focus, .form-control:focus {
+    background-color: #251c3d;
+    color: var(--text);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem var(--accent-soft);
+}
+
+.label-sm {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.btn-agregar {
+    background: var(--accent) !important;
+    color: #14101f !important;
+    font-weight: 600;
+    border: none !important;
+    border-radius: 0.6rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-agregar:hover,
+.btn-agregar:focus {
+    background: var(--accent) !important;
+    color: #14101f !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px var(--accent-soft);
+}
+
+.btn-accion {
+    background: linear-gradient(135deg, var(--violet), #4a3773) !important;
+    color: #fff !important;
+    font-weight: 600;
+    border: none !important;
+    border-radius: 0.7rem;
+    padding: 0.6rem 1.4rem;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-accion:hover:not(:disabled),
+.btn-accion:focus:not(:disabled) {
+    background: linear-gradient(135deg, var(--violet), #4a3773) !important;
+    color: #fff !important;
+    transform: translateY(-2px);
+}
+
+.btn-accion:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ============================
+   Tags de elementos en la mezcla
+   ============================ */
+.mix-tag {
+    background: #251c3d;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.7rem;
+    padding: 0.4rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text);
+    animation: aparecer 0.25s ease;
+}
+
+.mix-tag-pct {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.elemento-chip {
+    width: 34px;
+    height: 34px;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #14101f;
+    flex-shrink: 0;
+}
+
+.mix-tag button {
+    background: none;
+    border: none;
+    color: #e88;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+@keyframes aparecer {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.progreso-mix {
+    background: #251c3d;
+    border-radius: 1rem;
+    height: 8px;
+    overflow: hidden;
+}
+
+.progreso-mix-bar {
+    background: linear-gradient(90deg, var(--accent), var(--violet));
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.progreso-entrenamiento {
+    background: #251c3d;
+    border-radius: 0.6rem;
+    height: 28px;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+}
+
+.progreso-entrenamiento-bar {
+    background: linear-gradient(90deg, var(--violet), var(--accent));
+    height: 100%;
+    color: #14101f;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.4s ease;
+    white-space: nowrap;
+}
+
+.mensaje-box {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 0.6rem;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+/* ============================
+   Tablas
+   ============================ */
+.tabla-moderna {
+    --bs-table-color: var(--text);
+    --bs-table-bg: transparent;
+    --bs-table-striped-color: var(--text);
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+    --bs-table-hover-color: var(--text);
+    --bs-table-hover-bg: rgba(136, 201, 153, 0.06);
+    --bs-table-border-color: var(--panel-border);
+    color: var(--text);
+    margin-bottom: 0;
+}
+
+.tabla-moderna thead {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.tabla-moderna tbody tr {
+    border-color: var(--panel-border);
+}
+
+.tabla-moderna td,
+.tabla-moderna td * {
+    color: var(--text) !important;
+}
+
+.tabla-moderna th.th-sort {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s ease;
+}
+
+.tabla-moderna th.th-sort:hover {
+    color: var(--accent);
+}
+
+.tabla-moderna th.th-sort i {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-left: 0.25rem;
+}
+
+.tabla-moderna td {
+    vertical-align: middle;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+}
+
+.var-nombre {
+    font-weight: 600;
+    color: var(--text) !important;
+}
+
+/* Barra de R2 dentro de la celda */
+.r2-celda {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.r2-barra-bg {
+    flex: 1;
+    background: #251c3d;
+    border-radius: 1rem;
+    height: 8px;
+    overflow: hidden;
+    min-width: 60px;
+}
+
+.r2-barra-fill {
+    height: 100%;
+    border-radius: 1rem;
+    transition: width 0.4s ease;
+}
+
+.r2-barra-fill.r2-bueno { background: linear-gradient(90deg, #6bcf80, var(--accent)); }
+.r2-barra-fill.r2-medio { background: linear-gradient(90deg, #e0c26f, #f2d879); }
+.r2-barra-fill.r2-malo  { background: linear-gradient(90deg, #e07f7f, #e0a97f); }
+
+.r2-valor {
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 42px;
+    text-align: right;
+}
+
+.r2-valor.r2-txt-bueno { color: var(--accent) !important; }
+.r2-valor.r2-txt-medio { color: #f2d879 !important; }
+.r2-valor.r2-txt-malo  { color: #e0a97f !important; }
+
+/* Valor de predicción, bien destacado */
+.pred-valor {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent) !important;
+}
+
+/* Estado vacío */
+.tabla-vacia {
+    display: none;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+}
+
+.tabla-vacia i {
+    font-size: 2rem;
+    opacity: 0.4;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.tabla-vacia p {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+/* ============================
+   Fix: texto "Progreso de mezcla"
+   Bootstrap pinta .text-muted con un gris pensado para fondo
+   claro; sobre este fondo oscuro casi no se ve. Lo pisamos acá.
+   ============================ */
+.panel .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.panel .text-muted span {
+    color: var(--accent) !important;
+    font-weight: 600;
+}
+
+/* ============================
+   Navbar / menú
+   ============================ */
+.navbar.panel {
+    padding: 0.6rem 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+}
+
+.navbar .nav-link {
+    color: var(--text-muted) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    transition: color 0.15s ease;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+    color: var(--accent) !important;
+}
+
+.navbar-toggler {
+    border-color: var(--panel-border);
+}
+
+.navbar-toggler-icon {
+    filter: invert(1) grayscale(1);
+}
+
+/* Menú fijo (sticky): se queda visible arriba al scrollear */
+.navbar-fijo {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+.badge-admin {
+    background: var(--violet);
+    color: #ffffff !important;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.4rem;
+    margin-left: 0.35rem;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+/* ============================
+   Tablas de dataset (Admin y Mi Dataset): encabezado fijo al scrollear
+   ============================ */
+.tabla-fija-header thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--panel) !important;
+    box-shadow: 0 1px 0 var(--panel-border);
+}
+
+/* Icono de advertencia, ahora clickeable: chip circular con hover */
+.chip-advertencia {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(224, 169, 127, 0.15);
+    color: #e0a97f;
+    border: 1px solid rgba(224, 169, 127, 0.4);
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chip-advertencia:hover {
+    transform: scale(1.12);
+    background: rgba(224, 169, 127, 0.3);
+    box-shadow: 0 0 0 4px rgba(224, 169, 127, 0.12);
+}
+
+.chip-advertencia i {
+    font-size: 0.95rem;
+}
+
+/* Botones de accion por fila (editar / borrar / pdf): icono redondo,
+   compactos y consistentes entre las dos tablas de dataset */
+.btn-fila-accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 0.6rem;
+    border: 1px solid transparent;
+    background: #251c3d;
+    color: var(--text-muted);
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-fila-accion:hover {
+    transform: translateY(-1px);
+}
+
+.btn-fila-accion.accion-editar {
+    background: rgba(136, 201, 153, 0.12);
+    color: var(--accent);
+    border-color: rgba(136, 201, 153, 0.35);
+}
+.btn-fila-accion.accion-editar:hover { background: rgba(136, 201, 153, 0.28); }
+
+.btn-fila-accion.accion-borrar {
+    background: rgba(224, 127, 127, 0.12);
+    color: #e07f7f;
+    border-color: rgba(224, 127, 127, 0.35);
+}
+.btn-fila-accion.accion-borrar:hover { background: rgba(224, 127, 127, 0.28); }
+
+.btn-fila-accion.accion-pdf {
+    background: rgba(224, 169, 127, 0.12);
+    color: #e0a97f;
+    border-color: rgba(224, 169, 127, 0.35);
+}
+.btn-fila-accion.accion-pdf:hover { background: rgba(224, 169, 127, 0.28); }
+
+.btn-fila-accion.accion-guardar {
+    background: rgba(136, 201, 153, 0.12);
+    color: var(--accent);
+    border-color: rgba(136, 201, 153, 0.35);
+}
+.btn-fila-accion.accion-guardar:hover { background: rgba(136, 201, 153, 0.28); }
+
+.btn-fila-accion.accion-cancelar {
+    background: rgba(224, 127, 127, 0.12);
+    color: #e07f7f;
+    border-color: rgba(224, 127, 127, 0.35);
+}
+.btn-fila-accion.accion-cancelar:hover { background: rgba(224, 127, 127, 0.28); }
+/* ============================
+   Seccion "Sobre la desarrolladora" (Inicio)
+   ============================ */
+.avatar-desarrolladora {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #14101f;
+    background: linear-gradient(135deg, var(--accent), var(--violet));
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.btn-red-social {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: #fff !important;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-red-social:hover {
+    transform: translateY(-2px);
+    opacity: 0.92;
+}
+
+.btn-linkedin  { background: #0a66c2; }
+.btn-instagram { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); }
+.btn-x         { background: #14101f; border: 1px solid var(--panel-border); }
+
+/* ============================
+   Paginas de Ayuda: figuras y referencias (estilo "libro tecnico")
+   ============================ */
+.seccion-doc {
+    border-left: 3px solid var(--accent);
+}
+
+.figura-doc {
+    margin: 1.1rem 0 0.4rem;
+    text-align: center;
+    background: #14101f;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.8rem;
+    padding: 0.9rem;
+}
+
+.figura-doc img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+}
+
+.pie-figura {
+    margin: 0.6rem 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.bloque-referencias {
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--panel-border);
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.lista-referencias {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.lista-referencias li {
+    margin-bottom: 0.35rem;
+}
+
+.lista-referencias a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.lista-referencias a:hover {
+    text-decoration: underline;
+}
+
+.lista-referencias i {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
+/* ============================
+   Toasts (notificaciones)
+   ============================ */
+.toast {
+    background: var(--panel) !important;
+    border: 1px solid var(--panel-border) !important;
+    color: var(--text) !important;
+}
+
+.toast .toast-header {
+    background: #251c3d !important;
+    color: var(--text) !important;
+    border-bottom: 1px solid var(--panel-border) !important;
+}
+
+.toast.toast-exito .toast-header i { color: var(--accent); }
+.toast.toast-error .toast-header i { color: #e07f7f; }
+
+/* Indicador de "entrenando" persistente en el navbar */
+.badge-entrenando {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.badge-entrenando .spinner-border {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-width: 2px;
+}
+.fila-inconsistente {
+    background: rgba(224, 127, 127, 0.08);
+}
+
+.icono-advertencia {
+    color: #e0a97f;
+}

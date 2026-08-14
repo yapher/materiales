@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Dataset - Polvos Coladores{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="titulo-app"><i class="bi bi-table"></i> Mi Dataset</h1>
+    <p class="subtitulo">
+        Tu copia personal del dataset (la que se usa cuando entrenás tu
+        modelo). Acá aparecen también las predicciones que guardaste.
+    </p>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <a href="{{ url_for('mezclas.index') }}" class="btn btn-agregar">
+        <i class="bi bi-arrow-left"></i> Volver a Predicción
+    </a>
+    <button class="btn btn-accion" onclick="cargarMiDataset()">
+        <i class="bi bi-arrow-clockwise"></i> Actualizar
+    </button>
+</div>
+
+<div id="mensajeMiDataset" class="mensaje-box mb-3" style="display:none;">
+    <span id="mensajeMiDatasetTexto"></span>
+</div>
+
+<div class="card panel mb-4">
+    <div class="card-body">
+        <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
+            <table class="table tabla-moderna tabla-fija-header" id="tablaMiDataset">
+                <thead id="cabeceraMiDataset"></thead>
+                <tbody id="cuerpoMiDataset"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal con el detalle de la inconsistencia -->
+<div class="modal fade" id="modalInconsistencia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content panel">
+            <div class="modal-header" style="border-bottom:1px solid var(--panel-border);">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle-fill icono-advertencia"></i> Fila inconsistente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="motivoInconsistenciaMio" class="mb-0 text-muted"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let columnasMiDataset = [];
+let filasMiDataset = [];
+
+function setMensajeMiDataset(texto, esError) {
+    const box = document.getElementById('mensajeMiDataset');
+    const span = document.getElementById('mensajeMiDatasetTexto');
+    span.textContent = texto;
+    box.style.borderColor = esError ? '#e07f7f' : '';
+    box.style.color = esError ? '#e0a97f' : '';
+    box.style.display = texto ? 'block' : 'none';
+}
+
+function mostrarMotivoMio(indice) {
+    const fila = filasMiDataset.find(f => f.indice === indice);
+    if (!fila) return;
+    document.getElementById('motivoInconsistenciaMio').textContent = fila.motivo || 'Sin detalle.';
+    const modal = new bootstrap.Modal(document.getElementById('modalInconsistencia'));
+    modal.show();
+}
+
+function cargarMiDataset() {
+    fetch('{{ url_for("mezclas.dataset_filas") }}')
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+            columnasMiDataset = data.columnas;
+            filasMiDataset = data.filas;
+            renderMiDataset();
+        })
+        .catch(err => setMensajeMiDataset(err.message, true));
+}
+
+function renderMiDataset() {
+    const cabecera = document.getElementById('cabeceraMiDataset');
+    const cuerpo = document.getElementById('cuerpoMiDataset');
+
+    cabecera.innerHTML = `
+        <tr>
+            <th title="Fila con datos inconsistentes"></th>
+            ${columnasMiDataset.map(c => `<th>${c}</th>`).join('')}
+            <th>Acciones</th>
+        </tr>`;
+
+    if (filasMiDataset.length === 0) {
+        cuerpo.innerHTML = `<tr><td colspan="${columnasMiDataset.length + 2}" class="text-center text-muted py-4">
+            Todavía no tenés filas en tu dataset. Se crea automáticamente
+            la primera vez que entrenás o predecís.
+        </td></tr>`;
+        return;
+    }
+
+    cuerpo.innerHTML = filasMiDataset.map(fila => {
+        const advertencia = fila.inconsistente
+            ? `<span class="chip-advertencia" onclick="mostrarMotivoMio(${fila.indice})" title="Ver detalle">
+                   <i class="bi bi-exclamation-triangle-fill"></i>
+               </span>`
+            : '';
+
+        const celdas = columnasMiDataset.map(col => {
+            const valor = fila.valores[col];
+            return `<td>${valor === null || valor === undefined ? '<span class="text-muted">—</span>' : valor}</td>`;
+        }).join('');
+
+        const claseFila = fila.inconsistente ? 'fila-inconsistente' : '';
+
+        return `<tr class="${claseFila}">
+            <td>${advertencia}</td>
+            ${celdas}
+            <td class="text-nowrap">
+                <div class="d-flex gap-1">
+                    <button class="btn-fila-accion accion-borrar" onclick="borrarFilaMiDataset(${fila.indice})" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    <a class="btn-fila-accion accion-pdf" href="/mezclas/dataset/filas/${fila.indice}/pdf" title="Exportar a PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function borrarFilaMiDataset(indice) {
+    confirmarModerno('¿Eliminar esta fila de tu dataset?', 'Eliminar fila').then(ok => {
+        if (!ok) return;
+
+        fetch(`/mezclas/dataset/filas/${indice}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+                setMensajeMiDataset(data.mensaje, false);
+                cargarMiDataset();
+            })
+            .catch(err => setMensajeMiDataset(err.message, true));
+    });
+}
+
+cargarMiDataset();
+</script>
+{% endblock %}
