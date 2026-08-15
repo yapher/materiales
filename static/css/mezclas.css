@@ -99,9 +99,6 @@ body {
     cursor: not-allowed;
 }
 
-/* ============================
-   Tags de elementos en la mezcla
-   ============================ */
 .mix-tag {
     background: #251c3d;
     border: 1px solid var(--panel-border);
@@ -149,14 +146,43 @@ body {
 .progreso-mix {
     background: #251c3d;
     border-radius: 1rem;
-    height: 8px;
+    height: 14px;
     overflow: hidden;
+    border: 1px solid var(--panel-border);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .progreso-mix-bar {
-    background: linear-gradient(90deg, var(--accent), var(--violet));
     height: 100%;
-    transition: width 0.3s ease;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+    border-radius: 1rem;
+    position: relative;
+}
+
+.progreso-mix-bar.progreso-incompleto {
+    background: linear-gradient(90deg, #e0a97f, #e07f7f);
+    box-shadow: 0 0 12px rgba(224, 127, 127, 0.35);
+}
+
+.progreso-mix-bar.progreso-completo {
+    background: linear-gradient(90deg, #6bcf80, var(--accent));
+    box-shadow: 0 0 18px rgba(136, 201, 153, 0.40);
+}
+
+.progreso-mix-bar.progreso-excedido {
+    background: linear-gradient(90deg, #e07f7f, #c95555);
+    box-shadow: 0 0 18px rgba(224, 127, 127, 0.50);
+    animation: parpadeo-exceso 1.2s ease-in-out infinite;
+}
+
+@keyframes parpadeo-exceso {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+#porcentajeTotal {
+    font-weight: 700;
+    color: var(--accent);
 }
 
 .progreso-entrenamiento {
@@ -190,9 +216,6 @@ body {
     font-weight: 500;
 }
 
-/* ============================
-   Tablas
-   ============================ */
 .tabla-moderna {
     --bs-table-color: var(--text);
     --bs-table-bg: transparent;
@@ -247,7 +270,6 @@ body {
     color: var(--text) !important;
 }
 
-/* Barra de R2 dentro de la celda */
 .r2-celda {
     display: flex;
     align-items: center;
@@ -284,14 +306,12 @@ body {
 .r2-valor.r2-txt-medio { color: #f2d879 !important; }
 .r2-valor.r2-txt-malo  { color: #e0a97f !important; }
 
-/* Valor de predicción, bien destacado */
 .pred-valor {
     font-weight: 700;
     font-size: 1rem;
     color: var(--accent) !important;
 }
 
-/* Estado vacío */
 .tabla-vacia {
     display: none;
     text-align: center;
@@ -311,11 +331,6 @@ body {
     font-size: 0.85rem;
 }
 
-/* ============================
-   Fix: texto "Progreso de mezcla"
-   Bootstrap pinta .text-muted con un gris pensado para fondo
-   claro; sobre este fondo oscuro casi no se ve. Lo pisamos acá.
-   ============================ */
 .panel .text-muted {
     color: var(--text-muted) !important;
 }
@@ -325,9 +340,6 @@ body {
     font-weight: 600;
 }
 
-/* ============================
-   Navbar / menú
-   ============================ */
 .navbar.panel {
     padding: 0.6rem 0;
     border-radius: 0;
@@ -356,7 +368,6 @@ body {
     filter: invert(1) grayscale(1);
 }
 
-/* Menú fijo (sticky): se queda visible arriba al scrollear */
 .navbar-fijo {
     position: sticky;
     top: 0;
@@ -375,9 +386,6 @@ body {
     vertical-align: middle;
 }
 
-/* ============================
-   Tablas de dataset (Admin y Mi Dataset): encabezado fijo al scrollear
-   ============================ */
 .tabla-fija-header thead th {
     position: sticky;
     top: 0;
@@ -386,7 +394,6 @@ body {
     box-shadow: 0 1px 0 var(--panel-border);
 }
 
-/* Icono de advertencia, ahora clickeable: chip circular con hover */
 .chip-advertencia {
     display: inline-flex;
     align-items: center;
@@ -411,8 +418,6 @@ body {
     font-size: 0.95rem;
 }
 
-/* Botones de accion por fila (editar / borrar / pdf): icono redondo,
-   compactos y consistentes entre las dos tablas de dataset */
 .btn-fila-accion {
     display: inline-flex;
     align-items: center;
@@ -436,6 +441,7 @@ body {
     color: var(--accent);
     border-color: rgba(136, 201, 153, 0.35);
 }
+
 .btn-fila-accion.accion-editar:hover { background: rgba(136, 201, 153, 0.28); }
 
 .btn-fila-accion.accion-borrar {
@@ -443,6 +449,7 @@ body {
     color: #e07f7f;
     border-color: rgba(224, 127, 127, 0.35);
 }
+
 .btn-fila-accion.accion-borrar:hover { background: rgba(224, 127, 127, 0.28); }
 
 .btn-fila-accion.accion-pdf {
@@ -450,6 +457,7 @@ body {
     color: #e0a97f;
     border-color: rgba(224, 169, 127, 0.35);
 }
+
 .btn-fila-accion.accion-pdf:hover { background: rgba(224, 169, 127, 0.28); }
 
 .btn-fila-accion.accion-guardar {
@@ -457,6 +465,7 @@ body {
     color: var(--accent);
     border-color: rgba(136, 201, 153, 0.35);
 }
+
 .btn-fila-accion.accion-guardar:hover { background: rgba(136, 201, 153, 0.28); }
 
 .btn-fila-accion.accion-cancelar {
@@ -464,10 +473,9 @@ body {
     color: #e07f7f;
     border-color: rgba(224, 127, 127, 0.35);
 }
+
 .btn-fila-accion.accion-cancelar:hover { background: rgba(224, 127, 127, 0.28); }
-/* ============================
-   Seccion "Sobre la desarrolladora" (Inicio)
-   ============================ */
+
 .avatar-desarrolladora {
     width: 110px;
     height: 110px;
@@ -504,9 +512,6 @@ body {
 .btn-instagram { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4); }
 .btn-x         { background: #14101f; border: 1px solid var(--panel-border); }
 
-/* ============================
-   Paginas de Ayuda: figuras y referencias (estilo "libro tecnico")
-   ============================ */
 .seccion-doc {
     border-left: 3px solid var(--accent);
 }
@@ -565,9 +570,6 @@ body {
     opacity: 0.7;
 }
 
-/* ============================
-   Toasts (notificaciones)
-   ============================ */
 .toast {
     background: var(--panel) !important;
     border: 1px solid var(--panel-border) !important;
@@ -583,7 +585,6 @@ body {
 .toast.toast-exito .toast-header i { color: var(--accent); }
 .toast.toast-error .toast-header i { color: #e07f7f; }
 
-/* Indicador de "entrenando" persistente en el navbar */
 .badge-entrenando {
     background: var(--accent-soft);
     color: var(--accent);
@@ -602,6 +603,7 @@ body {
     height: 0.7rem;
     border-width: 2px;
 }
+
 .fila-inconsistente {
     background: rgba(224, 127, 127, 0.08);
 }

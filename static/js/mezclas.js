@@ -1,22 +1,6 @@
-/* ==========================================================
-   mezclas.js
-   Lógica principal de la página de predicción.
-
-   Separación de responsabilidades:
-
-   - flujo.js maneja el camino visual Dataset/Entrenamiento/Predicción.
-   - mezclas.js maneja mezcla, entrenamiento, predicción y tablas.
-   - flujo.css maneja estilos del camino visual.
-   - mezclas.css maneja estilos generales.
-   ========================================================== */
-
 let mix = [];
 let modeloListo = false;
 let ultimaMezcla = null;
-
-let datosR2 = [];
-let datosPrediccion = [];
-let ordenEstado = {};
 
 const COLORES_ELEMENTO = {
     CaO:   "#8fd694",
@@ -31,53 +15,6 @@ const COLORES_ELEMENTO = {
     MnO:   "#d99fd0",
     TiO2:  "#9fd0d9",
 };
-
-
-// ============================
-// Integración con flujo.js
-// ============================
-
-function flujoDisponible() {
-    return !!window.FlujoModelo;
-}
-
-function actualizarFlujo() {
-    if (flujoDisponible()) {
-        window.FlujoModelo.actualizar();
-    }
-}
-
-function datasetListoParaEntrenar() {
-    if (flujoDisponible()) {
-        return window.FlujoModelo.isDatasetListo();
-    }
-
-    // Si no hay flujo visual, no bloqueamos por dataset.
-    return true;
-}
-
-function entrenamientoCorriendoAhora() {
-    if (flujoDisponible()) {
-        return window.FlujoModelo.isEntrenamientoCorriendo();
-    }
-
-    return false;
-}
-
-// API pública para flujo.js
-window.MezclasApp = {
-    getModeloListo() {
-        return modeloListo;
-    },
-    hayPrediccion() {
-        return datosPrediccion.length > 0;
-    }
-};
-
-
-// ============================
-// Modal / toasts compartidos
-// ============================
 
 function confirmarModerno(mensaje, titulo = 'Confirmar') {
     return new Promise(resolve => {
@@ -147,10 +84,25 @@ function mostrarToast(titulo, mensaje, esError = false) {
     }
 }
 
+function notificarWorkflow() {
+    if (window.FlujoModelo && typeof window.FlujoModelo.actualizar === 'function') {
+        window.FlujoModelo.actualizar();
+    }
 
-// ============================
-// Composición de la mezcla
-// ============================
+    document.dispatchEvent(new CustomEvent('mezclas:estado-actualizado'));
+}
+
+function calcularTotalMezcla() {
+    const total = mix.reduce((acc, e) => acc + (e.pct || 0), 0);
+    return Math.round(total * 1000) / 1000;
+}
+
+function formatearPorcentaje(valor) {
+    if (Number.isInteger(valor)) {
+        return valor.toString();
+    }
+    return valor.toFixed(2).replace(/\.?0+$/, '');
+}
 
 function actualizarMix() {
     const cont = document.getElementById('mixContainer');
@@ -166,19 +118,36 @@ function actualizarMix() {
 
         div.innerHTML = `
             <div class="elemento-chip" style="background:${color}">${e.elemento}</div>
-            <span class="mix-tag-pct">${e.pct}%</span>
+            <span class="mix-tag-pct">${formatearPorcentaje(e.pct)}%</span>
             <button onclick="eliminarElemento('${e.elemento}')">✕</button>`;
 
         cont.appendChild(div);
     });
 
-    const total = mix.reduce((acc, e) => acc + e.pct, 0);
+    const total = calcularTotalMezcla();
+    const porcentajeMostrar = Math.min(total, 100);
 
     const totalEl = document.getElementById('porcentajeTotal');
-    if (totalEl) totalEl.textContent = total;
+    if (totalEl) {
+        totalEl.textContent = formatearPorcentaje(total);
+    }
 
     const barEl = document.getElementById('mixBar');
-    if (barEl) barEl.style.width = `${Math.min(total, 100)}%`;
+    if (barEl) {
+        barEl.style.width = `${porcentajeMostrar}%`;
+
+        barEl.classList.remove('progreso-incompleto', 'progreso-excedido', 'progreso-completo');
+
+        if (total > 100.001) {
+            barEl.classList.add('progreso-excedido');
+        } else if (Math.abs(total - 100) < 0.001) {
+            barEl.classList.add('progreso-completo');
+        } else {
+            barEl.classList.add('progreso-incompleto');
+        }
+    }
+
+    actualizarVisibilidadPredecir();
 }
 
 function setMensaje(texto) {
@@ -193,22 +162,27 @@ function actualizarVisibilidadPredecir() {
     const btnPredecir = document.getElementById('btnPredecir');
     if (!btnPredecir) return;
 
-    btnPredecir.style.display = modeloListo ? 'inline-block' : 'none';
+    const total = calcularTotalMezcla();
+    const mezclaCompleta = Math.abs(total - 100) < 0.001;
 
-    actualizarFlujo();
+    btnPredecir.style.display = modeloListo ? 'inline-block' : 'none';
+    btnPredecir.disabled = !modeloListo || !mezclaCompleta;
+
+    notificarWorkflow();
 }
 
 function setOcupado(ocupado) {
-    const total = mix.reduce((a, e) => a + e.pct, 0);
+    const datasetOk = (window.FlujoModelo && typeof window.FlujoModelo.isDatasetListo === 'function')
+        ? window.FlujoModelo.isDatasetListo()
+        : true;
+
+    const entrenamientoCorriendo = (window.FlujoModelo && typeof window.FlujoModelo.isEntrenamientoCorriendo === 'function')
+        ? window.FlujoModelo.isEntrenamientoCorriendo()
+        : false;
 
     const btnEntrenar = document.getElementById('btnEntrenar');
     if (btnEntrenar) {
-        btnEntrenar.disabled = ocupado || !datasetListoParaEntrenar() || entrenamientoCorriendoAhora();
-    }
-
-    const btnPredecir = document.getElementById('btnPredecir');
-    if (btnPredecir) {
-        btnPredecir.disabled = ocupado || !modeloListo || total !== 100;
+        btnEntrenar.disabled = ocupado || !datasetOk || entrenamientoCorriendo;
     }
 
     actualizarVisibilidadPredecir();
@@ -219,13 +193,16 @@ function agregarElemento() {
     const pct = parseFloat(document.getElementById('porcentajeSel').value);
 
     if (!elemento) return setMensaje('Selecciona un elemento');
-    if (isNaN(pct)) return setMensaje('Porcentaje inválido');
+    if (isNaN(pct) || pct <= 0) return setMensaje('Porcentaje inválido');
     if (mix.some(e => e.elemento === elemento)) return setMensaje('Elemento ya agregado');
 
-    const total = mix.reduce((a, e) => a + e.pct, 0);
-    if (total + pct > 100) return setMensaje('No puede superar 100%');
+    const total = calcularTotalMezcla();
 
-    mix.push({ elemento, pct });
+    if (total + pct > 100.001) {
+        return setMensaje(`No puede superar 100% (actual: ${formatearPorcentaje(total)}%)`);
+    }
+
+    mix.push({ elemento, pct: Math.round(pct * 1000) / 1000 });
 
     document.getElementById('elementoSel').value = '';
     document.getElementById('porcentajeSel').value = '';
@@ -236,7 +213,8 @@ function agregarElemento() {
     datosPrediccion = [];
     renderTablaPrediccion();
 
-    setMensaje(`Total: ${mix.reduce((a, e) => a + e.pct, 0)}%`);
+    const nuevoTotal = calcularTotalMezcla();
+    setMensaje(`Total: ${formatearPorcentaje(nuevoTotal)}%`);
 }
 
 function eliminarElemento(elemento) {
@@ -251,38 +229,7 @@ function eliminarElemento(elemento) {
     setMensaje('Mezcla modificada. Ajustá el 100% y volvé a predecir.');
 }
 
-
-// ============================
-// Entrenamiento
-// ============================
-
 let pollEntrenamiento = null;
-
-function entrenar() {
-    setOcupado(true);
-
-    if (flujoDisponible()) {
-        window.FlujoModelo.setEntrenamientoCorriendo(true);
-    }
-
-    setMensaje('Iniciando entrenamiento...');
-
-    fetch('/mezclas/entrenar', { method: 'POST' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) throw new Error(data.error);
-            iniciarPollEntrenamiento();
-        })
-        .catch(err => {
-            setMensaje(err.message);
-
-            if (flujoDisponible()) {
-                window.FlujoModelo.setEntrenamientoCorriendo(false);
-            }
-
-            setOcupado(false);
-        });
-}
 
 function iniciarPollEntrenamiento() {
     if (pollEntrenamiento) return;
@@ -310,13 +257,13 @@ function consultarEstadoEntrenamiento() {
             const badge = document.getElementById('badgeEntrenando');
             const progresoDiv = document.getElementById('progresoEntrenamiento');
 
+            if (window.FlujoModelo) {
+                window.FlujoModelo.setEntrenamientoCorriendo(!!data.corriendo);
+            }
+
             if (data.corriendo) {
                 if (badge) badge.style.display = 'inline-flex';
                 if (progresoDiv) progresoDiv.style.display = 'block';
-
-                if (flujoDisponible()) {
-                    window.FlujoModelo.setEntrenamientoCorriendo(true);
-                }
 
                 if (data.total) {
                     actualizarBarraProgreso(data.progreso, data.total);
@@ -328,7 +275,7 @@ function consultarEstadoEntrenamiento() {
                     setMensaje('Entrenando...');
                 }
 
-                actualizarFlujo();
+                if (window.FlujoModelo) window.FlujoModelo.actualizar();
                 return;
             }
 
@@ -339,20 +286,27 @@ function consultarEstadoEntrenamiento() {
                 pollEntrenamiento = null;
             }
 
-            if (flujoDisponible()) {
-                window.FlujoModelo.setEntrenamientoCorriendo(false);
-            }
-
             setOcupado(false);
 
             if (data.error) {
                 mostrarToast('Error de entrenamiento', data.error, true);
                 setMensaje(data.error);
-                actualizarFlujo();
+                if (window.FlujoModelo) window.FlujoModelo.actualizar();
                 return;
             }
 
             if (data.listo) {
+                // =============================================
+                // FIX: Forzar barra de progreso al 100%
+                // sin importar si el polling llegó a ver
+                // estados intermedios con corriendo=true
+                // =============================================
+                if (progresoDiv) progresoDiv.style.display = 'block';
+                actualizarBarraProgreso(
+                    data.progreso || data.total || 1,
+                    data.total || 1
+                );
+
                 const yaVisto = localStorage.getItem('entrenamiento_visto') === data.fecha;
 
                 modeloListo = true;
@@ -373,20 +327,21 @@ function consultarEstadoEntrenamiento() {
                 setMensaje(`Modelo entrenado en ${data.tiempo}s`);
             }
 
-            actualizarFlujo();
+            if (window.FlujoModelo) window.FlujoModelo.actualizar();
         })
         .catch(() => {});
 }
 
 
-// ============================
-// Predicción
-// ============================
-
 function predecir() {
     const temperatura = document.getElementById('temperatura').value;
 
     if (!temperatura) return setMensaje('Ingresa la temperatura del proceso');
+
+    const total = calcularTotalMezcla();
+    if (Math.abs(total - 100) > 0.001) {
+        return setMensaje(`La mezcla debe sumar 100% (actual: ${formatearPorcentaje(total)}%)`);
+    }
 
     setOcupado(true);
     setMensaje('Calculando predicción...');
@@ -470,10 +425,9 @@ async function guardarPrediccionDataset() {
         .catch(err => setMensaje(err.message));
 }
 
-
-// ============================
-// Render de tablas
-// ============================
+let datosR2 = [];
+let datosPrediccion = [];
+let ordenEstado = {};
 
 function claseR2(valor) {
     if (valor >= 0.8) return 'bueno';
@@ -490,7 +444,7 @@ function renderTablaR2() {
     if (datosR2.length === 0) {
         tbody.innerHTML = '';
         if (vacio) vacio.style.display = 'block';
-        actualizarFlujo();
+        notificarWorkflow();
         return;
     }
 
@@ -514,7 +468,7 @@ function renderTablaR2() {
             </tr>`;
     }).join('');
 
-    actualizarFlujo();
+    notificarWorkflow();
 }
 
 function renderTablaPrediccion() {
@@ -530,7 +484,7 @@ function renderTablaPrediccion() {
         if (vacio) vacio.style.display = 'block';
         if (acciones) acciones.style.display = 'none';
 
-        actualizarFlujo();
+        notificarWorkflow();
         return;
     }
 
@@ -543,7 +497,7 @@ function renderTablaPrediccion() {
             <td><span class="pred-valor">${row.prediccion}</span></td>
         </tr>`).join('');
 
-    actualizarFlujo();
+    notificarWorkflow();
 }
 
 function ordenarTabla(tabla, campo) {
@@ -573,18 +527,13 @@ function ordenarTabla(tabla, campo) {
     }
 }
 
-
-// ============================
-// Estado del servidor
-// ============================
-
 function comprobarEstadoServidor() {
     fetch('/mezclas/estado')
         .then(r => r.ok ? r.json() : null)
         .then(data => {
             if (!data) return;
 
-            if (data.dataset_cargado && flujoDisponible()) {
+            if (data.dataset_cargado && window.FlujoModelo) {
                 window.FlujoModelo.setDatasetListo(true);
             }
 
@@ -594,7 +543,7 @@ function comprobarEstadoServidor() {
                 setOcupado(false);
             }
 
-            actualizarFlujo();
+            notificarWorkflow();
         })
         .catch(() => {});
 }
@@ -622,16 +571,6 @@ function restaurarUltimaPrediccion() {
         .catch(() => {});
 }
 
-
-// ============================
-// Inicialización
-// ============================
-
-document.addEventListener('flujo:dataset-actualizado', () => {
-    setOcupado(false);
-    actualizarFlujo();
-});
-
 consultarEstadoEntrenamiento();
 
 if (document.getElementById('mixContainer')) {
@@ -640,3 +579,12 @@ if (document.getElementById('mixContainer')) {
     comprobarEstadoServidor();
     restaurarUltimaPrediccion();
 }
+
+window.MezclasApp = {
+    getModeloListo() {
+        return modeloListo;
+    },
+    hayPrediccion() {
+        return datosPrediccion.length > 0;
+    }
+};

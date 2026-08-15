@@ -1,14 +1,3 @@
-<!-- ==========================================================
-     FLUJO VISUAL DEL MODELO
-     1. Dataset
-     2. Entrenamiento
-     3. Predicción
-
-     Este template solo dibuja el camino.
-     La lógica está en static/js/flujo.js
-     Los estilos están en static/css/flujo.css
-     ========================================================== -->
-
 <div id="flujoPasos" class="card panel flujo-panel mb-4">
     <div class="card-body">
 
@@ -60,9 +49,19 @@
                         Primero se debe cargar el dataset.
                     </div>
 
-                    <div class="flujo-acciones">
-                        <button id="btnEntrenar" class="btn btn-accion btn-sm" onclick="entrenar()" disabled>
-                            <i class="bi bi-gear-wide-connected"></i> Entrenar Modelo
+                    <div class="flujo-acciones d-flex align-items-center gap-2">
+                        <button
+                            type="button"
+                            class="btn-config-redondo"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalConfiguracionEntrenamiento"
+                            title="Configurar variables a modelar"
+                        >
+                            <i class="bi bi-gear-fill"></i>
+                        </button>
+
+                        <button id="btnEntrenar" class="btn btn-accion btn-sm" onclick="entrenarModelo()" disabled>
+                            <i class="bi bi-gear-wide-connected"></i> Modelar
                         </button>
                     </div>
 

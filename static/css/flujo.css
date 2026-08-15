@@ -1,14 +1,3 @@
-/* ==========================================================
-   flujo.css
-   Estilos del camino visual:
-   1. Dataset
-   2. Entrenamiento
-   3. Predicción
-
-   Se separa del CSS general para mantener estilos, lógica
-   y vistas en capas distintas.
-   ========================================================== */
-
 :root {
     --flujo-bg-1: #2e2350;
     --flujo-bg-2: #251c3d;
@@ -23,7 +12,6 @@
     --flujo-glow-violet: rgba(107, 79, 160, 0.28);
 }
 
-/* Panel principal del flujo */
 .flujo-panel {
     background:
         radial-gradient(circle at top right, rgba(136, 201, 153, 0.10), transparent 32%),
@@ -38,14 +26,12 @@
     letter-spacing: 0.01rem;
 }
 
-/* Contenedor horizontal */
 .flujo-contenedor {
     display: flex;
     align-items: stretch;
     gap: 1rem;
 }
 
-/* Cada paso */
 .flujo-paso {
     flex: 1;
     display: flex;
@@ -62,7 +48,6 @@
     min-height: 170px;
 }
 
-/* Icono circular */
 .flujo-icono {
     width: 56px;
     height: 56px;
@@ -81,9 +66,9 @@
     transition: all .22s ease;
 }
 
-/* Texto */
 .flujo-info {
     min-width: 0;
+    flex: 1;
 }
 
 .flujo-step-badge {
@@ -115,11 +100,58 @@
     margin-bottom: .8rem;
 }
 
+.flujo-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .flujo-acciones .btn {
     font-weight: 700;
 }
 
-/* Conectores */
+/* ==========================================================
+   BOTÓN DE CONFIGURACIÓN REDONDO ROJO
+   ========================================================== */
+
+.btn-config-redondo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e07f7f, #c95555);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.10);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow:
+        0 8px 20px rgba(224, 127, 127, 0.30),
+        0 0 0 4px rgba(224, 127, 127, 0.08);
+    transition: all 0.22s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.btn-config-redondo:hover {
+    transform: translateY(-2px) scale(1.06) rotate(15deg);
+    box-shadow:
+        0 12px 28px rgba(224, 127, 127, 0.40),
+        0 0 0 5px rgba(224, 127, 127, 0.12);
+    background: linear-gradient(135deg, #e88888, #d66060);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn-config-redondo:active {
+    transform: translateY(0) scale(0.96) rotate(0deg);
+}
+
+.btn-config-redondo i {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
 .flujo-conector {
     flex: 0 0 42px;
     height: 4px;
@@ -132,7 +164,6 @@
     transition: all .25s ease;
 }
 
-/* Estado activo */
 .flujo-paso.paso-activo {
     border-color: rgba(136, 201, 153, 0.45);
     box-shadow:
@@ -149,11 +180,6 @@
         0 0 28px rgba(136, 201, 153, 0.22);
 }
 
-.flujo-paso.paso-activo .flujo-titulo {
-    color: #ffffff;
-}
-
-/* Estado completo */
 .flujo-paso.paso-completo {
     border-color: rgba(136, 201, 153, 0.65);
     background:
@@ -178,7 +204,6 @@
     background: linear-gradient(90deg, #b7ffd0, #88c999);
 }
 
-/* Estado error */
 .flujo-paso.paso-error {
     border-color: rgba(224, 127, 127, 0.65);
     background:
@@ -202,7 +227,6 @@
     background: linear-gradient(90deg, #ffd3d3, #e07f7f);
 }
 
-/* Conectores completos */
 .flujo-conector.conector-completo {
     background: linear-gradient(90deg, #88c999, #6b4fa0);
     box-shadow:
@@ -211,7 +235,6 @@
     opacity: 1;
 }
 
-/* Responsive: vertical en mobile */
 @media (max-width: 991.98px) {
     .flujo-contenedor {
         flex-direction: column;

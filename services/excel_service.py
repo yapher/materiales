@@ -9,6 +9,7 @@ import numpy as np
 from config import Config
 from utils import obtener_user_id, archivo_dataset_usuario
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -53,25 +54,37 @@ def cargar_dataset(user_id=None):
 
         logger.info("Leyendo dataset usuario %s", user_id)
 
-        df = pd.read_excel(archivo, sheet_name=Config.HOJA_DATASET)
+        df = pd.read_excel(
+            archivo,
+            sheet_name=Config.HOJA_DATASET
+        )
+
         df = df.dropna(how="all")
 
         _datasets[user_id] = df
 
-        logger.info("Dataset usuario %s cargado (%s filas)", user_id, len(df))
+        logger.info(
+            "Dataset usuario %s cargado (%s filas)",
+            user_id,
+            len(df)
+        )
 
-    return _datasets[user_id]
+        return _datasets[user_id]
 
 
 # ==========================================================
-# RECARGAR DATASET (fuerza releer el excel del usuario desde disco)
+# RECARGAR DATASET
 # ==========================================================
 
 def recargar_dataset():
     user_id = obtener_user_id()
-    archivo = inicializar_dataset_usuario()
+    archivo = inicializar_dataset_usuario(user_id)
 
-    df = pd.read_excel(archivo, sheet_name=Config.HOJA_DATASET)
+    df = pd.read_excel(
+        archivo,
+        sheet_name=Config.HOJA_DATASET
+    )
+
     df = df.dropna(how="all")
 
     with _lock_dataset:
@@ -83,7 +96,7 @@ def recargar_dataset():
 
 
 # ==========================================================
-# ESTADO: dataset del usuario actual ya esta en memoria?
+# ESTADO: dataset del usuario actual ya está en memoria?
 # ==========================================================
 
 def dataset_cargado():
@@ -92,7 +105,7 @@ def dataset_cargado():
 
 
 # ==========================================================
-# INFO RESUMIDA DEL DATASET (fuerza la carga si hace falta)
+# INFO RESUMIDA DEL DATASET
 # ==========================================================
 
 def cargar_excel_service():
@@ -106,12 +119,6 @@ def cargar_excel_service():
 
 # ==========================================================
 # GUARDAR UNA PREDICCION COMO FILA NUEVA EN EL DATASET PERSONAL
-#
-# A diferencia del dataset MAESTRO (que solo administra Jazmin), esto
-# escribe en la copia PERSONAL de CADA usuario: cada quien enriquece su
-# propio dataset con las mezclas que va probando. No se retrena el
-# modelo automáticamente; el usuario tiene que volver a apretar
-# "Entrenar Modelo" para que la fila nueva se tenga en cuenta.
 # ==========================================================
 
 def guardar_prediccion_en_dataset(mix, temperatura, tabla_prediccion):
@@ -122,16 +129,15 @@ def guardar_prediccion_en_dataset(mix, temperatura, tabla_prediccion):
 
     fila = {col: None for col in df.columns}
 
-    # Los elementos que la mezcla NO usa son 0% de esa mezcla, no un dato
-    # faltante. Si se dejaban en None, _analizar_fila() los marcaba como
-    # "inconsistentes" por error (creyendo que faltaba un dato), aunque
-    # la composición sumara 100% correctamente.
+    # Los elementos que la mezcla NO usa son 0% de esa mezcla,
+    # no un dato faltante.
     for col in COLUMNAS:
         if col in fila:
             fila[col] = 0
 
     for e in mix:
         col = f"{e['elemento']}_pct"
+
         if col in fila:
             fila[col] = e["pct"]
 
@@ -140,62 +146,84 @@ def guardar_prediccion_en_dataset(mix, temperatura, tabla_prediccion):
 
     for item in tabla_prediccion:
         col = item["columna"]
+
         if col in fila:
             fila[col] = item["prediccion"]
 
     nueva_fila = pd.DataFrame([fila])[df.columns]
+
     df = pd.concat([df, nueva_fila], ignore_index=True)
 
     archivo = archivo_dataset_usuario()
-    df.to_excel(archivo, sheet_name=Config.HOJA_DATASET, index=False)
+
+    df.to_excel(
+        archivo,
+        sheet_name=Config.HOJA_DATASET,
+        index=False
+    )
 
     with _lock_dataset:
         _datasets[user_id] = df
 
-    logger.info("Predicción guardada en el dataset del usuario %s (fila %s)", user_id, len(df) - 1)
+    logger.info(
+        "Predicción guardada en el dataset del usuario %s (fila %s)",
+        user_id,
+        len(df) - 1
+    )
 
     return {"filas": len(df)}
 
 
 # ==========================================================
-# DATASET MAESTRO (administracion, solo para el admin)
-#
-# Es el archivo plantilla (Config.ARCHIVO_DATASET), la fuente de
-# verdad que se copia a cada usuario nuevo. Editar acá NO modifica
-# retroactivamente las copias que ya tienen los usuarios existentes
-# (para eso están usando "Recargar dataset" en su propia sesión).
+# DATASET MAESTRO (administración, solo para el admin)
 # ==========================================================
 
 _dataset_maestro = None
 _lock_maestro = threading.Lock()
 
-TOLERANCIA_SUMA_PCT = 0.5  # margen aceptado para que la mezcla sume ~100%
+TOLERANCIA_SUMA_PCT = 0.5
 
 
 def _analizar_fila(fila, columnas_pct):
     """
-    Devuelve (inconsistente: bool, motivo: str|None) para una fila del
-    dataset maestro. Una fila se marca inconsistente si:
-      - le falta algun valor en las columnas de composicion (_pct) o
-        en Temperatura_C, o
-      - la suma de las columnas de composicion no da ~100%.
+    Devuelve (inconsistente: bool, motivo: str|None) para una fila.
+
+    Una fila se marca inconsistente si:
+
+    - le falta algún valor en las columnas de composición (_pct)
+      o en Temperatura_C, o
+    - la suma de las columnas de composición no da ~100%.
     """
     motivos = []
 
-    columnas_obligatorias = columnas_pct + (["Temperatura_C"] if "Temperatura_C" in fila else [])
-    faltantes = [c for c in columnas_obligatorias if pd.isna(fila.get(c))]
+    columnas_obligatorias = columnas_pct + (
+        ["Temperatura_C"] if "Temperatura_C" in fila else []
+    )
+
+    faltantes = [
+        c for c in columnas_obligatorias
+        if pd.isna(fila.get(c))
+    ]
 
     if faltantes:
         motivos.append(f"Faltan valores en: {', '.join(faltantes)}")
 
-    presentes = [c for c in columnas_pct if not pd.isna(fila.get(c))]
+    presentes = [
+        c for c in columnas_pct
+        if not pd.isna(fila.get(c))
+    ]
+
     if presentes:
         suma = sum(fila.get(c, 0) for c in presentes)
+
         if abs(suma - 100) > TOLERANCIA_SUMA_PCT:
-            motivos.append(f"La composición suma {round(suma, 2)}%, no 100%")
+            motivos.append(
+                f"La composición suma {round(suma, 2)}%, no 100%"
+            )
 
     if motivos:
         return True, "; ".join(motivos)
+
     return False, None
 
 
@@ -204,9 +232,18 @@ def cargar_dataset_maestro(forzar=False):
 
     with _lock_maestro:
         if _dataset_maestro is None or forzar:
-            logger.info("Leyendo dataset maestro (%s)", Config.ARCHIVO_DATASET)
-            df = pd.read_excel(Config.ARCHIVO_DATASET, sheet_name=Config.HOJA_DATASET)
+            logger.info(
+                "Leyendo dataset maestro (%s)",
+                Config.ARCHIVO_DATASET
+            )
+
+            df = pd.read_excel(
+                Config.ARCHIVO_DATASET,
+                sheet_name=Config.HOJA_DATASET
+            )
+
             df = df.dropna(how="all").reset_index(drop=True)
+
             _dataset_maestro = df
 
     return _dataset_maestro
@@ -216,7 +253,12 @@ def guardar_dataset_maestro(df):
     global _dataset_maestro
 
     with _lock_maestro:
-        df.to_excel(Config.ARCHIVO_DATASET, sheet_name=Config.HOJA_DATASET, index=False)
+        df.to_excel(
+            Config.ARCHIVO_DATASET,
+            sheet_name=Config.HOJA_DATASET,
+            index=False
+        )
+
         _dataset_maestro = df
 
     logger.info("Dataset maestro guardado (%s filas)", len(df))
@@ -224,16 +266,10 @@ def guardar_dataset_maestro(df):
 
 def _fila_a_dict_json_seguro(fila):
     """
-    Convierte una fila (pandas Series) a un dict apto para json.dumps.
-
-    OJO: `fila.where(pd.notna(fila), None).to_dict()` NO sirve para esto:
-    en una columna float64, pandas vuelve a convertir ese None en NaN
-    para mantener el tipo de dato de la columna, así que el NaN
-    "sobrevive" y despues rompe el JSON.parse() del navegador (NaN no
-    es JSON valido, aunque json.dumps de Python lo deje pasar). Por eso
-    acá se recorre valor por valor.
+    Convierte una fila (pandas Series) a un dict apto para JSON.
     """
     resultado = {}
+
     for col, val in fila.items():
         if pd.isna(val):
             resultado[col] = None
@@ -243,16 +279,21 @@ def _fila_a_dict_json_seguro(fila):
             resultado[col] = float(val)
         else:
             resultado[col] = val
+
     return resultado
 
 
 def _listar_filas_df(df):
-    """Arma la estructura {columnas, filas} con deteccion de inconsistencias, para CUALQUIER DataFrame (maestro o personal de un usuario)."""
+    """
+    Arma la estructura {columnas, filas} con detección de
+    inconsistencias, para cualquier DataFrame.
+    """
     from .constants import COLUMNAS
 
     columnas_pct = [c for c in COLUMNAS if c in df.columns]
 
     filas = []
+
     for i, fila in df.iterrows():
         inconsistente, motivo = _analizar_fila(fila, columnas_pct)
         valores = _fila_a_dict_json_seguro(fila)
@@ -276,9 +317,15 @@ def listar_filas_maestro():
 
 
 def obtener_fila_maestro(indice):
-    """Devuelve (columnas, fila) para UNA fila del dataset maestro. Usado para exportar a PDF."""
+    """
+    Devuelve (columnas, fila) para UNA fila del dataset maestro.
+    """
     data = listar_filas_maestro()
-    fila = next((f for f in data["filas"] if f["indice"] == indice), None)
+
+    fila = next(
+        (f for f in data["filas"] if f["indice"] == indice),
+        None
+    )
 
     if fila is None:
         raise ValueError("Fila inexistente")
@@ -287,23 +334,36 @@ def obtener_fila_maestro(indice):
 
 
 def listar_filas_usuario():
-    """Igual que listar_filas_maestro(), pero sobre la copia PERSONAL del usuario actual."""
+    """
+    Igual que listar_filas_maestro(), pero sobre la copia
+    personal del usuario actual.
+    """
     df = cargar_dataset()
     return _listar_filas_df(df)
 
 
 def obtener_fila_usuario(indice):
-    """Devuelve (columnas, fila) para UNA fila del dataset personal del usuario actual. Usado para exportar a PDF."""
+    """
+    Devuelve (columnas, fila) para UNA fila del dataset personal
+    del usuario actual.
+    """
     data = listar_filas_usuario()
-    fila = next((f for f in data["filas"] if f["indice"] == indice), None)
+
+    fila = next(
+        (f for f in data["filas"] if f["indice"] == indice),
+        None
+    )
 
     if fila is None:
         raise ValueError("Fila inexistente")
 
     return data["columnas"], fila
 
+
 def actualizar_fila_usuario(indice, valores):
-    """Edita una fila de la copia PERSONAL del usuario actual."""
+    """
+    Edita una fila de la copia personal del usuario actual.
+    """
     user_id = obtener_user_id()
     df = cargar_dataset()
 
@@ -315,17 +375,29 @@ def actualizar_fila_usuario(indice, valores):
             df.at[indice, col] = val
 
     archivo = archivo_dataset_usuario()
-    df.to_excel(archivo, sheet_name=Config.HOJA_DATASET, index=False)
+
+    df.to_excel(
+        archivo,
+        sheet_name=Config.HOJA_DATASET,
+        index=False
+    )
 
     with _lock_dataset:
         _datasets[user_id] = df
 
-    logger.info("Fila %s actualizada en el dataset del usuario %s", indice, user_id)
+    logger.info(
+        "Fila %s actualizada en el dataset del usuario %s",
+        indice,
+        user_id
+    )
+
     return df
 
 
 def eliminar_fila_usuario(indice):
-    """Borra una fila de la copia PERSONAL del usuario actual (por ejemplo, una predicción guardada por error)."""
+    """
+    Borra una fila de la copia personal del usuario actual.
+    """
     user_id = obtener_user_id()
     df = cargar_dataset()
 
@@ -335,12 +407,22 @@ def eliminar_fila_usuario(indice):
     df = df.drop(index=indice).reset_index(drop=True)
 
     archivo = archivo_dataset_usuario()
-    df.to_excel(archivo, sheet_name=Config.HOJA_DATASET, index=False)
+
+    df.to_excel(
+        archivo,
+        sheet_name=Config.HOJA_DATASET,
+        index=False
+    )
 
     with _lock_dataset:
         _datasets[user_id] = df
 
-    logger.info("Fila %s eliminada del dataset del usuario %s", indice, user_id)
+    logger.info(
+        "Fila %s eliminada del dataset del usuario %s",
+        indice,
+        user_id
+    )
+
     return df
 
 
@@ -355,6 +437,7 @@ def actualizar_fila_maestro(indice, valores):
             df.at[indice, col] = val
 
     guardar_dataset_maestro(df)
+
     return df
 
 
@@ -365,7 +448,9 @@ def eliminar_fila_maestro(indice):
         raise ValueError("Fila inexistente")
 
     df = df.drop(index=indice).reset_index(drop=True)
+
     guardar_dataset_maestro(df)
+
     return df
 
 
@@ -373,7 +458,12 @@ def agregar_fila_maestro(valores):
     df = cargar_dataset_maestro()
 
     nueva = {col: valores.get(col) for col in df.columns}
-    df = pd.concat([df, pd.DataFrame([nueva])], ignore_index=True)
+
+    df = pd.concat(
+        [df, pd.DataFrame([nueva])],
+        ignore_index=True
+    )
 
     guardar_dataset_maestro(df)
+
     return df

@@ -1,0 +1,139 @@
+.configuracion-entrenamiento {
+    background:
+        radial-gradient(circle at top right, rgba(136, 201, 153, 0.08), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(107, 79, 160, 0.12), transparent 32%),
+        var(--panel);
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.configuracion-entrenamiento .modal-header {
+    border-bottom: 1px solid var(--panel-border);
+}
+
+.configuracion-entrenamiento .modal-title {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.configuracion-entrenamiento .modal-footer {
+    border-top: 1px solid var(--panel-border);
+}
+
+.config-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.config-variables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.65rem;
+}
+
+.variable-toggle {
+    position: relative;
+    width: 100%;
+    min-height: 74px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    padding: 0.75rem 2.6rem 0.75rem 0.8rem;
+    border-radius: 0.85rem;
+    border: 1px solid var(--panel-border);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+        #251c3d;
+    color: var(--text);
+    text-align: left;
+    transition:
+        transform 0.16s ease,
+        border-color 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease;
+}
+
+.variable-toggle:hover {
+    transform: translateY(-1px);
+    border-color: rgba(136, 201, 153, 0.45);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.variable-toggle.activo {
+    border-color: var(--accent);
+    background:
+        linear-gradient(180deg, rgba(136, 201, 153, 0.14), rgba(136, 201, 153, 0.05)),
+        #223228;
+    box-shadow:
+        0 0 0 1px rgba(136, 201, 153, 0.22),
+        0 12px 28px rgba(0, 0, 0, 0.20),
+        0 0 24px rgba(136, 201, 153, 0.10);
+}
+
+.variable-toggle-texto {
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.variable-toggle-codigo {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    font-family: monospace;
+    opacity: 0.9;
+}
+
+.variable-toggle-check {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: transparent;
+    transition:
+        background 0.16s ease,
+        color 0.16s ease,
+        transform 0.16s ease;
+}
+
+.variable-toggle.activo .variable-toggle-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #14101f;
+    transform: scale(1.05);
+}
+
+.config-advertencia {
+    background: rgba(224, 169, 127, 0.12);
+    border: 1px solid rgba(224, 169, 127, 0.45);
+    color: #e0a97f;
+    border-radius: 0.7rem;
+    padding: 0.7rem 0.85rem;
+    font-weight: 600;
+}
+
+.config-contador {
+    font-size: 0.85rem;
+}
+
+@media (max-width: 767.98px) {
+    .config-variables-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .variable-toggle {
+        min-height: auto;
+    }
+
+    .config-acciones .btn {
+        flex: 1 1 100%;
+    }
+}
