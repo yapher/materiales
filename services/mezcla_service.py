@@ -14,8 +14,10 @@ from .excel_service import (
     obtener_feature_columns,
     filtrar_dataset_entrenamiento,
 )
+
 from .ml_service import entrenar_una_columna
 from .constants import es_columna_temperatura
+
 from utils import (
     validar_mezcla_100,
     validar_temperatura,
@@ -37,17 +39,21 @@ _lock_estado = threading.Lock()
 
 def obtener_usuario():
     user_id = obtener_user_id()
+
     with _lock_global:
         if user_id not in _modelos:
             _modelos[user_id] = None
+
     return user_id
 
 
 def obtener_lock_usuario(user_id=None):
     user_id = user_id or obtener_user_id()
+
     with _lock_global:
         if user_id not in _locks:
             _locks[user_id] = threading.Lock()
+
     return _locks[user_id]
 
 
@@ -59,36 +65,45 @@ def _set_estado_entrenamiento(user_id, **kwargs):
 
 def obtener_estado_entrenamiento():
     user_id = obtener_user_id()
+
     with _lock_estado:
         estado = _estado_entrenamiento.get(user_id)
-        if estado is None:
-            return {"corriendo": False, "listo": False}
-        return dict(estado)
+
+    if estado is None:
+        return {"corriendo": False, "listo": False}
+
+    return dict(estado)
 
 
 def _normalizar_targets(targets, user_id=None):
     """
     Normaliza la lista de variables a entrenar.
+
     Si targets es None, usa la variable por defecto detectada
     dinámicamente desde el dataset.
     """
     if targets is None:
         esquema = obtener_esquema_dataset(user_id)
         default_target = esquema.get("variable_entrenable_default")
+
         if not default_target:
             raise ValueError(
                 "El dataset actual no tiene variables entrenables detectadas."
             )
+
         return [default_target]
 
     if not isinstance(targets, list):
         raise ValueError("Las variables a modelar deben enviarse como lista")
 
     limpias = []
+
     for item in targets:
         if item is None:
             continue
+
         valor = str(item).strip()
+
         if valor and valor not in limpias:
             limpias.append(valor)
 
@@ -134,6 +149,7 @@ def iniciar_entrenamiento(targets=None):
     targets = _normalizar_targets(targets, user_id)
 
     lock = obtener_lock_usuario(user_id)
+
     if not lock.acquire(blocking=False):
         return False
 
@@ -238,6 +254,7 @@ def _entrenar_en_background(user_id, lock, targets):
                     scores[columna] = score
 
                 tiempo_actual = round(time.time() - inicio, 1)
+
                 _set_estado_entrenamiento(
                     user_id,
                     progreso=i,
@@ -251,6 +268,7 @@ def _entrenar_en_background(user_id, lock, targets):
                     columna,
                     user_id
                 )
+
                 _set_estado_entrenamiento(
                     user_id,
                     corriendo=False,
@@ -276,15 +294,31 @@ def _entrenar_en_background(user_id, lock, targets):
 
         _guardar_modelo(user_id, modelos)
 
-        tabla_r2 = [
-            {"columna": k, "r2": v}
-            for k, v in sorted(
-                scores.items(),
-                key=lambda x: x[1] if x[1] is not None else -1,
-                reverse=True
-            )
-            if v is not None
-        ]
+        tabla_r2 = []
+
+        for columna, score in sorted(
+            scores.items(),
+            key=lambda x: x[1] if x[1] is not None else -1,
+            reverse=True
+        ):
+            if score is None:
+                continue
+
+            info_columna = modelos.get(columna, {}) or {}
+
+            tabla_r2.append({
+                "columna": columna,
+                "r2": score,
+                "filas_entrenadas": info_columna.get("filas_entrenadas", 0),
+                "filas_excluidas_target_invalido": info_columna.get(
+                    "filas_excluidas_target_invalido",
+                    0
+                ),
+                "filas_excluidas_outliers": info_columna.get(
+                    "filas_excluidas_outliers",
+                    0
+                ),
+            })
 
         tiempo_final = round(time.time() - inicio, 2)
 
@@ -312,6 +346,7 @@ def _entrenar_en_background(user_id, lock, targets):
             "Error general de entrenamiento (usuario %s)",
             user_id
         )
+
         _set_estado_entrenamiento(
             user_id,
             corriendo=False,
@@ -333,15 +368,18 @@ def predecir_service(mix, temperatura):
         raise ValueError("Primero entrená el modelo")
 
     valido, total = validar_mezcla_100(mix)
+
     if not valido:
         raise ValueError(f"La mezcla debe sumar 100% (actual {total}%)")
 
     valido, temperatura = validar_temperatura(temperatura)
+
     if not valido:
         raise ValueError("Temperatura inválida")
 
     # Juntar todas las features que conocen los modelos entrenados.
     features = set()
+
     for info in _modelos[user_id].values():
         features.update(info.get("features", []))
 
@@ -357,6 +395,7 @@ def predecir_service(mix, temperatura):
         elemento = e.get("elemento", "")
         pct = e.get("pct", 0)
         col = f"{elemento}_pct"
+
         if col in valores:
             valores[col] = float(pct)
 
@@ -369,6 +408,7 @@ def predecir_service(mix, temperatura):
 
     for nombre, info in _modelos[user_id].items():
         modelo = info["modelo"]
+
         vector = [
             valores.get(f, 0)
             for f in info["features"]
@@ -435,6 +475,7 @@ def estado_service():
         "columnas_dataset": columnas,
         "modelo_en_memoria": _modelos[user_id] is not None,
         "modelo_persistido": os.path.exists(archivo_modelo_usuario()),
+        "modelo_info": info_modelo_service(),
     }
 
 
@@ -444,8 +485,67 @@ def info_modelo_service():
     if not os.path.exists(archivo):
         return {"entrenado": False}
 
-    with open(archivo, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(archivo, "r", encoding="utf-8") as f:
+            info = json.load(f)
+    except Exception:
+        logger.exception("No se pudo leer info_modelo.json")
+        return {"entrenado": False}
+
+    if not isinstance(info, dict):
+        return {"entrenado": False}
+
+    tabla = info.get("tabla_r2")
+
+    # ------------------------------------------------------
+    # Compatibilidad hacia adelante:
+    # Si el info_modelo.json fue generado antes de que se
+    # guardara la cantidad de filas entrenadas, intentamos
+    # recuperarla desde el modelo.pkl cargado en memoria.
+    # ------------------------------------------------------
+    if info.get("entrenado") and isinstance(tabla, list) and tabla:
+        user_id = obtener_usuario()
+
+        try:
+            if _modelos.get(user_id) is None:
+                cargar_modelo()
+        except Exception:
+            logger.exception(
+                "No se pudo cargar el modelo para completar info_modelo"
+            )
+
+        modelos_usuario = _modelos.get(user_id)
+
+        if isinstance(modelos_usuario, dict):
+            for fila in tabla:
+                if not isinstance(fila, dict):
+                    continue
+
+                columna = fila.get("columna")
+                info_columna = modelos_usuario.get(columna)
+
+                if not isinstance(info_columna, dict):
+                    continue
+
+                if "filas_entrenadas" not in fila:
+                    fila["filas_entrenadas"] = info_columna.get(
+                        "filas_entrenadas",
+                        0
+                    )
+
+                if "filas_excluidas_target_invalido" not in fila:
+                    fila["filas_excluidas_target_invalido"] = info_columna.get(
+                        "filas_excluidas_target_invalido",
+                        0
+                    )
+
+                if "filas_excluidas_outliers" not in fila:
+                    fila["filas_excluidas_outliers"] = info_columna.get(
+                        "filas_excluidas_outliers",
+                        0
+                    )
+
+    return info
 
 
 def reset_modelo_service():
@@ -455,10 +555,12 @@ def reset_modelo_service():
         _modelos[user_id] = None
 
     ruta = archivo_modelo_usuario()
+
     if os.path.exists(ruta):
         os.remove(ruta)
 
     ruta_info = archivo_info_usuario()
+
     if os.path.exists(ruta_info):
         os.remove(ruta_info)
 
