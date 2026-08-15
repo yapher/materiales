@@ -4,7 +4,10 @@ import logging
 import numpy as np
 import pandas as pd
 
-from .excel_service import cargar_dataset
+from .excel_service import (
+    cargar_dataset,
+    obtener_filas_entrenables,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +66,6 @@ def detectar_columna_temperatura(columnas):
 
     for nombre in PREFERENCIA_TEMPERATURA:
         clave = normalizar_nombre_columna(nombre)
-
         if clave in mapa_normalizado:
             return mapa_normalizado[clave]
 
@@ -92,45 +94,34 @@ def obtener_feature_columns(df):
 
 
 def obtener_target_columns(df):
+    """
+    Devuelve las variables a modelar (targets).
+
+    Criterio: CUALQUIER columna numérica que NO sea una feature
+    (es decir, que no sea *_pct ni temperatura), SIN IMPORTAR
+    su posición en la hoja.
+
+    Esto permite detectar TODAS las variables del dataset,
+    incluyendo columnas derivadas como Basicidad_CaO_SiO2 que
+    pueden aparecer entre la composición y la temperatura, y
+    cualquier variable adicional que se agregue al dataset.
+    """
     features = obtener_feature_columns(df)
     feature_set = set(features)
 
-    columnas = list(df.columns)
-
-    indices_features = [
-        columnas.index(col)
-        for col in feature_set
-        if col in columnas
-    ]
-
-    if indices_features:
-        inicio_targets = max(indices_features) + 1
-    else:
-        inicio_targets = 0
-
     targets = []
 
-    for col in columnas[inicio_targets:]:
+    for col in df.columns:
         if col in feature_set:
             continue
-
         if _es_columna_numerica(df, col):
             targets.append(col)
-
-    if not targets:
-        for col in columnas:
-            if col in feature_set:
-                continue
-
-            if _es_columna_numerica(df, col):
-                targets.append(col)
 
     return targets
 
 
 def obtener_variables_diagnostico():
     df = cargar_dataset()
-
     targets = obtener_target_columns(df)
 
     default_target = None
@@ -145,7 +136,6 @@ def obtener_variables_diagnostico():
 
         for candidata in preferidas:
             clave = normalizar_nombre_columna(candidata)
-
             match = next(
                 (
                     t for t in targets
@@ -153,7 +143,6 @@ def obtener_variables_diagnostico():
                 ),
                 None
             )
-
             if match:
                 default_target = match
                 break
@@ -162,7 +151,6 @@ def obtener_variables_diagnostico():
             default_target = targets[0]
 
     variables = []
-
     for target in targets:
         variables.append({
             "valor": target,
@@ -187,16 +175,30 @@ def _seguro_valor(valor):
 
     if isinstance(valor, (float, np.floating)):
         numero = float(valor)
-
         if not np.isfinite(numero):
             return None
-
         return round(numero, 6)
 
     return str(valor)
 
 
 def analizar_variable(variable):
+    """
+    Analiza una variable objetivo del dataset y detecta:
+
+    1. Filas donde la composición no suma 100% (no entrenables).
+    2. Filas donde el target es <= 0 (no entrenables).
+    3. Filas donde la temperatura es inconsistente (se reemplaza
+       por 0 al entrenar, no se excluyen).
+    4. Filas con features faltantes.
+    5. Outliers del target (IQR / MAD).
+    6. Temperaturas atípicas.
+    7. Duplicadas exactas.
+
+    Los criterios de "entrenable" son los MISMOS que usa
+    el entrenamiento real (filtrar_dataset_entrenamiento +
+    entrenar_una_columna).
+    """
     df = cargar_dataset().copy()
 
     if variable not in df.columns:
@@ -253,7 +255,6 @@ def analizar_variable(variable):
 
         comp_out = (comp_df < 0) | (comp_df > 100)
         comp_out_any = comp_out.any(axis=1)
-
     else:
         suma_pct = pd.Series(np.nan, index=df.index)
         suma_pct_round = pd.Series(np.nan, index=df.index)
@@ -265,18 +266,64 @@ def analizar_variable(variable):
     else:
         temp_series = pd.Series(np.nan, index=df.index)
 
-    entrenable = target.notna() & features_no_nulas
+    # ----------------------------------------------------------
+    # FILTRO DE COMPOSICIÓN (misma regla que el entrenamiento):
+    # composición completa y suma 100% ± tolerancia.
+    # La temperatura NO excluye: si falta, se reemplaza por 0.
+    # ----------------------------------------------------------
+    mascara_composicion_ok = obtener_filas_entrenables(df)
+
+    # ----------------------------------------------------------
+    # FILTRO DE TARGET (misma regla que entrenar_una_columna):
+    # el valor objetivo debe ser > 0.
+    # ----------------------------------------------------------
+    target_valido_positivo = target > 0
+
+    # ----------------------------------------------------------
+    # TEMPERATURA INCONSISTENTE:
+    # Se cuenta cuántas filas tienen temperatura NaN/no numérica.
+    # En el entrenamiento se reemplazan por 0, no se excluyen.
+    # ----------------------------------------------------------
+    temperatura_inconsistente = temp_series.isna()
+    cant_temp_reemplazada = int(temperatura_inconsistente.sum())
+
+    # ----------------------------------------------------------
+    # MÁSCARA FINAL DE "ENTRENABLE":
+    # Mismos criterios que el entrenamiento real.
+    # ----------------------------------------------------------
+    entrenable = (
+        target.notna()
+        & features_no_nulas
+        & mascara_composicion_ok
+        & target_valido_positivo
+    )
 
     filas_entrenables = int(entrenable.sum())
 
     porcentaje_entrenable = 0.0
-
     if total_filas > 0:
         porcentaje_entrenable = round(
             100.0 * filas_entrenables / total_filas,
             2
         )
 
+    # Conteos para el resumen
+    excluidas_por_composicion = int(
+        (target.notna() & features_no_nulas & ~mascara_composicion_ok).sum()
+    )
+
+    excluidas_por_target_cero = int(
+        (
+            target.notna()
+            & features_no_nulas
+            & mascara_composicion_ok
+            & ~target_valido_positivo
+        ).sum()
+    )
+
+    # ----------------------------------------------------------
+    # OUTLIERS DEL TARGET (solo sobre filas entrenables)
+    # ----------------------------------------------------------
     y = target[entrenable]
 
     out_iqr = pd.Series(False, index=df.index)
@@ -308,8 +355,10 @@ def analizar_variable(variable):
 
     out_mask_target = (out_iqr | out_z).fillna(False)
 
+    # ----------------------------------------------------------
+    # TEMPERATURAS ATÍPICAS (IQR, solo sobre valores numéricos)
+    # ----------------------------------------------------------
     temp_out = pd.Series(False, index=df.index)
-
     temp_vals = temp_series.dropna()
 
     if len(temp_vals) >= 5:
@@ -326,20 +375,24 @@ def analizar_variable(variable):
                 (temp_series > lim_sup_temp)
             ).fillna(False)
 
+    # ----------------------------------------------------------
+    # DUPLICADAS EXACTAS
+    # ----------------------------------------------------------
     duplicadas_exactas = 0
-
     if features:
         cols_dup = list(features) + [variable]
         duplicadas_exactas = int(
             df[cols_dup].duplicated(keep=False).sum()
         )
 
+    # ----------------------------------------------------------
+    # RAZONES POR FILA (para la tabla de sospechosas)
+    # ----------------------------------------------------------
     razones_por_indice = {}
 
     def agregar_razon(indice, motivo):
         if indice not in razones_por_indice:
             razones_por_indice[indice] = []
-
         razones_por_indice[indice].append(motivo)
 
     for idx in df.index:
@@ -348,7 +401,6 @@ def analizar_variable(variable):
 
         if not bool(features_no_nulas.at[idx]):
             faltantes = []
-
             for c in features:
                 if pd.isna(feat_df.at[idx, c]):
                     faltantes.append(c)
@@ -374,6 +426,19 @@ def analizar_variable(variable):
             agregar_razon(
                 idx,
                 "Hay componentes fuera de rango 0-100%"
+            )
+
+        if bool(target.at[idx] <= 0) and not pd.isna(target.at[idx]):
+            agregar_razon(
+                idx,
+                f"Valor objetivo ≤ 0 ({_seguro_valor(target.at[idx])}): "
+                "se excluye del entrenamiento"
+            )
+
+        if bool(temperatura_inconsistente.at[idx]):
+            agregar_razon(
+                idx,
+                "Temperatura inconsistente: se reemplaza por 0 al entrenar"
             )
 
         if bool(out_mask_target.at[idx]):
@@ -406,7 +471,6 @@ def analizar_variable(variable):
     sospechosas.sort(key=lambda x: x["fila"] if x["fila"] is not None else 999999)
 
     total_sospechosas = len(sospechosas)
-
     sospechosas = sospechosas[:200]
 
     target_valido = target.dropna()
@@ -447,6 +511,9 @@ def analizar_variable(variable):
         "features_faltantes": int((~features_no_nulas).sum()),
         "temperaturas_atipicas": int(temp_out.sum()),
         "duplicadas_exactas": duplicadas_exactas,
+        "excluidas_por_composicion": excluidas_por_composicion,
+        "excluidas_por_target_cero": excluidas_por_target_cero,
+        "temperatura_reemplazada_por_0": cant_temp_reemplazada,
     }
 
     problemas = []
@@ -471,6 +538,11 @@ def analizar_variable(variable):
             f"{resumen['features_faltantes']} filas con valores faltantes en features"
         )
 
+    if resumen["excluidas_por_target_cero"] > 0:
+        problemas.append(
+            f"{resumen['excluidas_por_target_cero']} filas con {etiqueta_amigable(variable)} ≤ 0"
+        )
+
     if resumen["temperaturas_atipicas"] > 0:
         problemas.append(
             f"{resumen['temperaturas_atipicas']} temperaturas atípicas"
@@ -486,7 +558,7 @@ def analizar_variable(variable):
             "Se detectaron posibles problemas: "
             + ", ".join(problemas)
             + ". Revisá las filas marcadas antes de borrarlas; solo corregí o eliminá "
-              "las que realmente sean errores de carga o medición."
+            "las que realmente sean errores de carga o medición."
         )
     else:
         mensaje_lectura = (
@@ -494,6 +566,29 @@ def analizar_variable(variable):
             "Si el R² sigue bajo, puede deberse a falta de datos representativos, "
             "ruido experimental o variables físicas que no están incluidas como features."
         )
+
+    info_entrenamiento = []
+
+    if excluidas_por_composicion > 0:
+        info_entrenamiento.append(
+            f"{excluidas_por_composicion} filas no se usarán al entrenar "
+            "porque su composición no suma 100% o tiene porcentajes faltantes."
+        )
+
+    if excluidas_por_target_cero > 0:
+        info_entrenamiento.append(
+            f"{excluidas_por_target_cero} filas no se usarán al entrenar "
+            f"porque {etiqueta_amigable(variable)} es ≤ 0."
+        )
+
+    if cant_temp_reemplazada > 0:
+        info_entrenamiento.append(
+            f"{cant_temp_reemplazada} filas tienen temperatura inconsistente; "
+            "se reemplazará por 0 al entrenar (no se excluyen)."
+        )
+
+    if info_entrenamiento:
+        mensaje_lectura += " " + " ".join(info_entrenamiento)
 
     return {
         "variable": variable,

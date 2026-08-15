@@ -12,12 +12,10 @@ from .excel_service import (
     cargar_dataset,
     obtener_esquema_dataset,
     obtener_feature_columns,
+    filtrar_dataset_entrenamiento,
 )
-
 from .ml_service import entrenar_una_columna
-
 from .constants import es_columna_temperatura
-
 from utils import (
     validar_mezcla_100,
     validar_temperatura,
@@ -29,7 +27,6 @@ from utils import (
 
 logger = logging.getLogger(__name__)
 
-
 _modelos = {}
 _locks = {}
 _lock_global = threading.Lock()
@@ -40,21 +37,17 @@ _lock_estado = threading.Lock()
 
 def obtener_usuario():
     user_id = obtener_user_id()
-
     with _lock_global:
         if user_id not in _modelos:
             _modelos[user_id] = None
-
     return user_id
 
 
 def obtener_lock_usuario(user_id=None):
     user_id = user_id or obtener_user_id()
-
     with _lock_global:
         if user_id not in _locks:
             _locks[user_id] = threading.Lock()
-
     return _locks[user_id]
 
 
@@ -66,45 +59,36 @@ def _set_estado_entrenamiento(user_id, **kwargs):
 
 def obtener_estado_entrenamiento():
     user_id = obtener_user_id()
-
     with _lock_estado:
         estado = _estado_entrenamiento.get(user_id)
-
-    if estado is None:
-        return {"corriendo": False, "listo": False}
-
-    return dict(estado)
+        if estado is None:
+            return {"corriendo": False, "listo": False}
+        return dict(estado)
 
 
 def _normalizar_targets(targets, user_id=None):
     """
     Normaliza la lista de variables a entrenar.
-
     Si targets es None, usa la variable por defecto detectada
     dinámicamente desde el dataset.
     """
     if targets is None:
         esquema = obtener_esquema_dataset(user_id)
         default_target = esquema.get("variable_entrenable_default")
-
         if not default_target:
             raise ValueError(
                 "El dataset actual no tiene variables entrenables detectadas."
             )
-
         return [default_target]
 
     if not isinstance(targets, list):
         raise ValueError("Las variables a modelar deben enviarse como lista")
 
     limpias = []
-
     for item in targets:
         if item is None:
             continue
-
         valor = str(item).strip()
-
         if valor and valor not in limpias:
             limpias.append(valor)
 
@@ -147,11 +131,9 @@ def _guardar_info_modelo(user_id, tabla_r2, tiempo, variables_entrenadas=None):
 
 def iniciar_entrenamiento(targets=None):
     user_id = obtener_usuario()
-
     targets = _normalizar_targets(targets, user_id)
 
     lock = obtener_lock_usuario(user_id)
-
     if not lock.acquire(blocking=False):
         return False
 
@@ -172,7 +154,6 @@ def iniciar_entrenamiento(targets=None):
         args=(user_id, lock, targets),
         daemon=True,
     )
-
     hilo.start()
 
     return True
@@ -180,7 +161,36 @@ def iniciar_entrenamiento(targets=None):
 
 def _entrenar_en_background(user_id, lock, targets):
     try:
-        df = cargar_dataset(user_id)
+        df_original = cargar_dataset(user_id)
+
+        # --------------------------------------------------
+        # IMPORTANTE:
+        # Antes de entrenar, se descartan las filas donde la
+        # composición de óxidos no suma 100% (± tolerancia)
+        # o donde faltan datos de composición/temperatura.
+        # --------------------------------------------------
+        df, info_filtrado = filtrar_dataset_entrenamiento(df_original)
+
+        logger.info(
+            "Entrenamiento usuario %s: %s filas originales, "
+            "%s filas entrenables, %s excluidas por composición inconsistente.",
+            user_id,
+            info_filtrado["filas_totales"],
+            info_filtrado["filas_entrenables"],
+            info_filtrado["filas_excluidas"],
+        )
+
+        if df.empty:
+            _set_estado_entrenamiento(
+                user_id,
+                corriendo=False,
+                listo=False,
+                error=(
+                    "No quedan filas entrenables después de filtrar las "
+                    "composiciones que no suman 100%. Revisá tu dataset."
+                ),
+            )
+            return
 
         features = obtener_feature_columns(df)
 
@@ -228,7 +238,6 @@ def _entrenar_en_background(user_id, lock, targets):
                     scores[columna] = score
 
                 tiempo_actual = round(time.time() - inicio, 1)
-
                 _set_estado_entrenamiento(
                     user_id,
                     progreso=i,
@@ -242,14 +251,12 @@ def _entrenar_en_background(user_id, lock, targets):
                     columna,
                     user_id
                 )
-
                 _set_estado_entrenamiento(
                     user_id,
                     corriendo=False,
                     listo=False,
                     error=f"Error entrenando {columna}: {e}",
                 )
-
                 return
 
         if not modelos:
@@ -305,7 +312,6 @@ def _entrenar_en_background(user_id, lock, targets):
             "Error general de entrenamiento (usuario %s)",
             user_id
         )
-
         _set_estado_entrenamiento(
             user_id,
             corriendo=False,
@@ -327,18 +333,15 @@ def predecir_service(mix, temperatura):
         raise ValueError("Primero entrená el modelo")
 
     valido, total = validar_mezcla_100(mix)
-
     if not valido:
         raise ValueError(f"La mezcla debe sumar 100% (actual {total}%)")
 
     valido, temperatura = validar_temperatura(temperatura)
-
     if not valido:
         raise ValueError("Temperatura inválida")
 
     # Juntar todas las features que conocen los modelos entrenados.
     features = set()
-
     for info in _modelos[user_id].values():
         features.update(info.get("features", []))
 
@@ -353,9 +356,7 @@ def predecir_service(mix, temperatura):
     for e in mix:
         elemento = e.get("elemento", "")
         pct = e.get("pct", 0)
-
         col = f"{elemento}_pct"
-
         if col in valores:
             valores[col] = float(pct)
 
@@ -368,7 +369,6 @@ def predecir_service(mix, temperatura):
 
     for nombre, info in _modelos[user_id].items():
         modelo = info["modelo"]
-
         vector = [
             valores.get(f, 0)
             for f in info["features"]
@@ -455,12 +455,10 @@ def reset_modelo_service():
         _modelos[user_id] = None
 
     ruta = archivo_modelo_usuario()
-
     if os.path.exists(ruta):
         os.remove(ruta)
 
     ruta_info = archivo_info_usuario()
-
     if os.path.exists(ruta_info):
         os.remove(ruta_info)
 
