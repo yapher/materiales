@@ -1,8 +1,23 @@
+/* ==========================================================
+   mezclas.js
+   Lógica principal de la página de predicción.
+
+   Separación de responsabilidades:
+
+   - flujo.js maneja el camino visual Dataset/Entrenamiento/Predicción.
+   - mezclas.js maneja mezcla, entrenamiento, predicción y tablas.
+   - flujo.css maneja estilos del camino visual.
+   - mezclas.css maneja estilos generales.
+   ========================================================== */
+
 let mix = [];
 let modeloListo = false;
-let ultimaMezcla = null;  // { mix, temperatura } de la ultima prediccion exitosa
+let ultimaMezcla = null;
 
-// Paleta inspirada en familias de la tabla periódica, una por elemento
+let datosR2 = [];
+let datosPrediccion = [];
+let ordenEstado = {};
+
 const COLORES_ELEMENTO = {
     CaO:   "#8fd694",
     SiO2:  "#7fb8e0",
@@ -17,13 +32,57 @@ const COLORES_ELEMENTO = {
     TiO2:  "#9fd0d9",
 };
 
+
 // ============================
-// Utilidades de UI compartidas: modal de confirmacion y toasts
+// Integración con flujo.js
+// ============================
+
+function flujoDisponible() {
+    return !!window.FlujoModelo;
+}
+
+function actualizarFlujo() {
+    if (flujoDisponible()) {
+        window.FlujoModelo.actualizar();
+    }
+}
+
+function datasetListoParaEntrenar() {
+    if (flujoDisponible()) {
+        return window.FlujoModelo.isDatasetListo();
+    }
+
+    // Si no hay flujo visual, no bloqueamos por dataset.
+    return true;
+}
+
+function entrenamientoCorriendoAhora() {
+    if (flujoDisponible()) {
+        return window.FlujoModelo.isEntrenamientoCorriendo();
+    }
+
+    return false;
+}
+
+// API pública para flujo.js
+window.MezclasApp = {
+    getModeloListo() {
+        return modeloListo;
+    },
+    hayPrediccion() {
+        return datosPrediccion.length > 0;
+    }
+};
+
+
+// ============================
+// Modal / toasts compartidos
 // ============================
 
 function confirmarModerno(mensaje, titulo = 'Confirmar') {
     return new Promise(resolve => {
         const modalEl = document.getElementById('modalConfirmar');
+
         if (!modalEl || typeof bootstrap === 'undefined') {
             resolve(window.confirm(mensaje));
             return;
@@ -34,18 +93,21 @@ function confirmarModerno(mensaje, titulo = 'Confirmar') {
 
         const modal = new bootstrap.Modal(modalEl);
         const btnOk = document.getElementById('confirmarBotonOk');
+
         let resuelto = false;
 
         const limpiar = () => {
             btnOk.removeEventListener('click', onOk);
             modalEl.removeEventListener('hidden.bs.modal', onCancel);
         };
+
         const onOk = () => {
             resuelto = true;
             limpiar();
             modal.hide();
             resolve(true);
         };
+
         const onCancel = () => {
             limpiar();
             if (!resuelto) resolve(false);
@@ -67,6 +129,7 @@ function mostrarToast(titulo, mensaje, esError = false) {
     const div = document.createElement('div');
     div.className = `toast ${clase}`;
     div.setAttribute('role', 'alert');
+
     div.innerHTML = `
         <div class="toast-header">
             <i class="bi ${icono} me-2"></i>
@@ -84,28 +147,36 @@ function mostrarToast(titulo, mensaje, esError = false) {
     }
 }
 
+
 // ============================
-// Composicion de la mezcla
+// Composición de la mezcla
 // ============================
 
 function actualizarMix() {
     const cont = document.getElementById('mixContainer');
     if (!cont) return;
+
     cont.innerHTML = '';
+
     mix.forEach(e => {
         const color = COLORES_ELEMENTO[e.elemento] || '#88c999';
+
         const div = document.createElement('div');
         div.className = 'mix-tag';
+
         div.innerHTML = `
             <div class="elemento-chip" style="background:${color}">${e.elemento}</div>
             <span class="mix-tag-pct">${e.pct}%</span>
             <button onclick="eliminarElemento('${e.elemento}')">✕</button>`;
+
         cont.appendChild(div);
     });
 
     const total = mix.reduce((acc, e) => acc + e.pct, 0);
+
     const totalEl = document.getElementById('porcentajeTotal');
     if (totalEl) totalEl.textContent = total;
+
     const barEl = document.getElementById('mixBar');
     if (barEl) barEl.style.width = `${Math.min(total, 100)}%`;
 }
@@ -113,25 +184,32 @@ function actualizarMix() {
 function setMensaje(texto) {
     const box = document.getElementById('mensajeBox');
     if (!box) return;
+
     document.getElementById('mensaje').textContent = texto;
     box.style.display = texto ? 'block' : 'none';
 }
 
 function actualizarVisibilidadPredecir() {
-    // El boton Predecir solo se muestra si ya hay un modelo entrenado.
     const btnPredecir = document.getElementById('btnPredecir');
     if (!btnPredecir) return;
+
     btnPredecir.style.display = modeloListo ? 'inline-block' : 'none';
+
+    actualizarFlujo();
 }
 
 function setOcupado(ocupado) {
     const total = mix.reduce((a, e) => a + e.pct, 0);
 
     const btnEntrenar = document.getElementById('btnEntrenar');
-    if (btnEntrenar) btnEntrenar.disabled = ocupado;
+    if (btnEntrenar) {
+        btnEntrenar.disabled = ocupado || !datasetListoParaEntrenar() || entrenamientoCorriendoAhora();
+    }
 
     const btnPredecir = document.getElementById('btnPredecir');
-    if (btnPredecir) btnPredecir.disabled = ocupado || !modeloListo || total !== 100;
+    if (btnPredecir) {
+        btnPredecir.disabled = ocupado || !modeloListo || total !== 100;
+    }
 
     actualizarVisibilidadPredecir();
 }
@@ -148,8 +226,10 @@ function agregarElemento() {
     if (total + pct > 100) return setMensaje('No puede superar 100%');
 
     mix.push({ elemento, pct });
+
     document.getElementById('elementoSel').value = '';
     document.getElementById('porcentajeSel').value = '';
+
     actualizarMix();
     setOcupado(false);
 
@@ -167,35 +247,24 @@ function eliminarElemento(elemento) {
 
     actualizarMix();
     setOcupado(false);
+
     setMensaje('Mezcla modificada. Ajustá el 100% y volvé a predecir.');
 }
 
-function cargarDataset() {
-    setOcupado(true);
-    setMensaje("Verificando dataset...");
-
-    fetch("/mezclas/cargar_dataset", { method: "POST" })
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) throw new Error(data.error);
-            setMensaje(`Dataset listo (${data.filas} filas)`);
-        })
-        .catch(err => setMensaje(err.message))
-        .finally(() => setOcupado(false));
-}
 
 // ============================
-// Entrenamiento: se dispara con un POST y el progreso se sigue por
-// POLLING (GET /mezclas/entrenar/estado), no por streaming. Por eso
-// sigue funcionando aunque el usuario cambie de pagina: el poll corre
-// en TODAS las paginas (ver el bloque de inicializacion, al final del
-// archivo), no solo en la de Predicción.
+// Entrenamiento
 // ============================
 
 let pollEntrenamiento = null;
 
 function entrenar() {
     setOcupado(true);
+
+    if (flujoDisponible()) {
+        window.FlujoModelo.setEntrenamientoCorriendo(true);
+    }
+
     setMensaje('Iniciando entrenamiento...');
 
     fetch('/mezclas/entrenar', { method: 'POST' })
@@ -206,12 +275,18 @@ function entrenar() {
         })
         .catch(err => {
             setMensaje(err.message);
+
+            if (flujoDisponible()) {
+                window.FlujoModelo.setEntrenamientoCorriendo(false);
+            }
+
             setOcupado(false);
         });
 }
 
 function iniciarPollEntrenamiento() {
     if (pollEntrenamiento) return;
+
     consultarEstadoEntrenamiento();
     pollEntrenamiento = setInterval(consultarEstadoEntrenamiento, 1200);
 }
@@ -219,7 +294,9 @@ function iniciarPollEntrenamiento() {
 function actualizarBarraProgreso(actual, total) {
     const barra = document.getElementById('barraProgreso');
     if (!barra) return;
+
     const pct = total > 0 ? Math.round((actual / total) * 100) : 0;
+
     barra.style.width = `${pct}%`;
     barra.textContent = `${pct}%`;
 }
@@ -237,26 +314,41 @@ function consultarEstadoEntrenamiento() {
                 if (badge) badge.style.display = 'inline-flex';
                 if (progresoDiv) progresoDiv.style.display = 'block';
 
+                if (flujoDisponible()) {
+                    window.FlujoModelo.setEntrenamientoCorriendo(true);
+                }
+
                 if (data.total) {
                     actualizarBarraProgreso(data.progreso, data.total);
-                    setMensaje(`Entrenando ${data.progreso} / ${data.total} variables... (${data.columna || '...'}) — ${data.tiempo}s`);
+                    setMensaje(
+                        `Entrenando ${data.progreso} / ${data.total} variables... ` +
+                        `(${data.columna || '...'}) — ${data.tiempo}s`
+                    );
                 } else {
                     setMensaje('Entrenando...');
                 }
+
+                actualizarFlujo();
                 return;
             }
 
-            // Ya no esta corriendo: se detiene el polling.
             if (badge) badge.style.display = 'none';
+
             if (pollEntrenamiento) {
                 clearInterval(pollEntrenamiento);
                 pollEntrenamiento = null;
             }
+
+            if (flujoDisponible()) {
+                window.FlujoModelo.setEntrenamientoCorriendo(false);
+            }
+
             setOcupado(false);
 
             if (data.error) {
                 mostrarToast('Error de entrenamiento', data.error, true);
                 setMensaje(data.error);
+                actualizarFlujo();
                 return;
             }
 
@@ -264,6 +356,7 @@ function consultarEstadoEntrenamiento() {
                 const yaVisto = localStorage.getItem('entrenamiento_visto') === data.fecha;
 
                 modeloListo = true;
+
                 actualizarVisibilidadPredecir();
                 setOcupado(false);
 
@@ -279,16 +372,20 @@ function consultarEstadoEntrenamiento() {
 
                 setMensaje(`Modelo entrenado en ${data.tiempo}s`);
             }
+
+            actualizarFlujo();
         })
         .catch(() => {});
 }
 
+
 // ============================
-// Prediccion
+// Predicción
 // ============================
 
 function predecir() {
     const temperatura = document.getElementById('temperatura').value;
+
     if (!temperatura) return setMensaje('Ingresa la temperatura del proceso');
 
     setOcupado(true);
@@ -305,8 +402,8 @@ function predecir() {
 
             datosPrediccion = data.tabla_prediccion;
             ultimaMezcla = { mix: JSON.parse(JSON.stringify(mix)), temperatura };
-            renderTablaPrediccion();
 
+            renderTablaPrediccion();
             setMensaje('Predicción calculada');
         })
         .catch(err => setMensaje(err.message))
@@ -324,17 +421,22 @@ async function exportarPrediccionPDF() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ultimaMezcla),
         });
+
         if (!r.ok) throw new Error('No se pudo generar el PDF');
 
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
+
         const a = document.createElement('a');
         a.href = url;
         a.download = 'prediccion_mezcla.pdf';
+
         document.body.appendChild(a);
         a.click();
         a.remove();
+
         URL.revokeObjectURL(url);
+
         setMensaje('PDF descargado');
     } catch (err) {
         setMensaje(err.message);
@@ -348,6 +450,7 @@ async function guardarPrediccionDataset() {
         '¿Agregar esta predicción como una fila nueva a tu dataset?',
         'Guardar predicción'
     );
+
     if (!confirmado) return;
 
     setMensaje('Guardando en el dataset...');
@@ -360,19 +463,17 @@ async function guardarPrediccionDataset() {
         .then(r => r.json())
         .then(data => {
             if (data.error) throw new Error(data.error);
+
             mostrarToast('Guardado', data.mensaje);
             setMensaje(data.mensaje);
         })
         .catch(err => setMensaje(err.message));
 }
 
+
 // ============================
 // Render de tablas
 // ============================
-
-let datosR2 = [];
-let datosPrediccion = [];
-let ordenEstado = {};
 
 function claseR2(valor) {
     if (valor >= 0.8) return 'bueno';
@@ -383,18 +484,22 @@ function claseR2(valor) {
 function renderTablaR2() {
     const tbody = document.getElementById('tablaR2');
     const vacio = document.getElementById('r2Vacio');
+
     if (!tbody) return;
 
     if (datosR2.length === 0) {
         tbody.innerHTML = '';
         if (vacio) vacio.style.display = 'block';
+        actualizarFlujo();
         return;
     }
+
     if (vacio) vacio.style.display = 'none';
 
     tbody.innerHTML = datosR2.map(row => {
         const clase = claseR2(row.r2);
         const pct = Math.max(0, Math.min(100, row.r2 * 100));
+
         return `
             <tr>
                 <td><span class="var-nombre">${row.columna}</span></td>
@@ -408,20 +513,27 @@ function renderTablaR2() {
                 </td>
             </tr>`;
     }).join('');
+
+    actualizarFlujo();
 }
 
 function renderTablaPrediccion() {
     const tbody = document.getElementById('tablaPrediccion');
     const vacio = document.getElementById('prediccionVacia');
     const acciones = document.getElementById('accionesPrediccion');
+
     if (!tbody) return;
 
     if (datosPrediccion.length === 0) {
         tbody.innerHTML = '';
+
         if (vacio) vacio.style.display = 'block';
         if (acciones) acciones.style.display = 'none';
+
+        actualizarFlujo();
         return;
     }
+
     if (vacio) vacio.style.display = 'none';
     if (acciones) acciones.style.display = 'flex';
 
@@ -430,43 +542,59 @@ function renderTablaPrediccion() {
             <td><span class="var-nombre">${row.columna}</span></td>
             <td><span class="pred-valor">${row.prediccion}</span></td>
         </tr>`).join('');
+
+    actualizarFlujo();
 }
 
 function ordenarTabla(tabla, campo) {
     const key = `${tabla}_${campo}`;
     const direccion = ordenEstado[key] === 'asc' ? 'desc' : 'asc';
+
     ordenEstado[key] = direccion;
 
     const datos = tabla === 'r2' ? datosR2 : datosPrediccion;
 
     datos.sort((a, b) => {
         let valA = a[campo], valB = b[campo];
+
         if (typeof valA === 'string') {
-            return direccion === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            return direccion === 'asc'
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
         }
+
         return direccion === 'asc' ? valA - valB : valB - valA;
     });
 
-    if (tabla === 'r2') renderTablaR2();
-    else renderTablaPrediccion();
+    if (tabla === 'r2') {
+        renderTablaR2();
+    } else {
+        renderTablaPrediccion();
+    }
 }
 
+
 // ============================
-// Estado del modelo + restaurar la ultima prediccion guardada
-// (persisten en el servidor: sobreviven a cambiar de pagina, cerrar
-// el navegador, o cerrar sesion y volver a entrar)
+// Estado del servidor
 // ============================
 
 function comprobarEstadoServidor() {
-    fetch("/mezclas/estado")
+    fetch('/mezclas/estado')
         .then(r => r.ok ? r.json() : null)
         .then(data => {
             if (!data) return;
+
+            if (data.dataset_cargado && flujoDisponible()) {
+                window.FlujoModelo.setDatasetListo(true);
+            }
+
             if (data.modelo_en_memoria || data.modelo_persistido) {
                 modeloListo = true;
                 actualizarVisibilidadPredecir();
                 setOcupado(false);
             }
+
+            actualizarFlujo();
         })
         .catch(() => {});
 }
@@ -494,12 +622,15 @@ function restaurarUltimaPrediccion() {
         .catch(() => {});
 }
 
+
 // ============================
-// Inicializacion: corre en TODAS las paginas (mezclas.js se carga
-// desde base.html), no solo en Predicción, para que el polling del
-// entrenamiento y el badge del navbar funcionen sin importar donde
-// este el usuario.
+// Inicialización
 // ============================
+
+document.addEventListener('flujo:dataset-actualizado', () => {
+    setOcupado(false);
+    actualizarFlujo();
+});
 
 consultarEstadoEntrenamiento();
 

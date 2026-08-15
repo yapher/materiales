@@ -9,9 +9,25 @@
     <p class="subtitulo">Predicción de propiedades por composición y temperatura</p>
 </div>
 
-<div class="card panel mb-4">
+<!-- Camino gráfico: Dataset -> Entrenamiento -> Predicción -->
+{% include "partials/flujo_modelo.html" %}
+
+<div id="mensajeBox" class="mensaje-box mb-4" style="display:none;">
+    <span id="mensaje"></span>
+</div>
+
+<!-- ==========================================================
+     COMPOSICIÓN DE LA MEZCLA
+     Solo aparece cuando el modelo ya está entrenado.
+     La visibilidad se controla desde flujo.js / mezclas.js.
+     ========================================================== -->
+
+<div id="panelComposicion" class="card panel mb-4" style="display:none;">
     <div class="card-body">
-        <h5 class="panel-titulo"><i class="bi bi-beaker"></i> Composición de la mezcla</h5>
+
+        <h5 class="panel-titulo">
+            <i class="bi bi-beaker"></i> Composición de la mezcla
+        </h5>
 
         <div class="row g-2 align-items-end mb-3">
             <div class="col-md-5">
@@ -19,14 +35,16 @@
                 <select id="elementoSel" class="form-select">
                     <option value="">Seleccionar...</option>
                     {% for e in elementos %}
-                    <option value="{{ e }}">{{ e }}</option>
+                        <option value="{{ e }}">{{ e }}</option>
                     {% endfor %}
                 </select>
             </div>
+
             <div class="col-md-4">
                 <label class="form-label label-sm">Porcentaje</label>
                 <input type="number" id="porcentajeSel" class="form-control" placeholder="Ej: 25">
             </div>
+
             <div class="col-md-3">
                 <button class="btn btn-agregar w-100" onclick="agregarElemento()">
                     <i class="bi bi-plus-lg"></i> Agregar
@@ -39,6 +57,12 @@
                 <label class="form-label label-sm">Temperatura del proceso (°C)</label>
                 <input type="number" id="temperatura" class="form-control" placeholder="Ej: 1500">
             </div>
+
+            <div class="col-md-3">
+                <button id="btnPredecir" class="btn btn-accion w-100" onclick="predecir()" disabled style="display:none;">
+                    <i class="bi bi-graph-up-arrow"></i> Predecir
+                </button>
+            </div>
         </div>
 
         <div id="mixContainer" class="d-flex flex-wrap gap-2 mb-3"></div>
@@ -46,52 +70,50 @@
         <div class="progreso-mix mb-1">
             <div class="progreso-mix-bar" id="mixBar" style="width:0%"></div>
         </div>
-        <small class="text-muted">Progreso de mezcla: <span id="porcentajeTotal">0</span>%</small>
+
+        <small class="text-muted">
+            Progreso de mezcla: <span id="porcentajeTotal">0</span>%
+        </small>
+
     </div>
 </div>
 
-<div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
-    <button id="btnEntrenar" class="btn btn-accion" onclick="entrenar()" disabled>
-        <i class="bi bi-gear-wide-connected"></i> Entrenar Modelo
-    </button>
-    <button id="btnPredecir" class="btn btn-accion" onclick="predecir()" disabled style="display:none;">
-        <i class="bi bi-graph-up-arrow"></i> Predecir
-    </button>
-    <a href="{{ url_for('mezclas.dataset_view') }}" class="btn btn-agregar">
-        <i class="bi bi-table"></i> Ver mi dataset
-    </a>
-</div>
+<!-- ==========================================================
+     RESULTADOS: R² Y PREDICCIÓN
+     Solo aparecen cuando el modelo ya está entrenado.
+     ========================================================== -->
 
-<div id="progresoEntrenamiento" class="mb-4" style="display:none;">
-    <div class="progreso-entrenamiento">
-        <div class="progreso-entrenamiento-bar" id="barraProgreso">0%</div>
-    </div>
-</div>
+<div id="resultadosModelo" class="row g-4" style="display:none;">
 
-<div id="mensajeBox" class="mensaje-box mb-4" style="display:none;">
-    <span id="mensaje"></span>
-</div>
-
-<div class="row g-4">
     <div class="col-md-6">
         <div class="card panel h-100">
             <div class="card-body">
-                <h5 class="panel-titulo"><i class="bi bi-bar-chart-line"></i> Precisión del modelo (R²)</h5>
+
+                <h5 class="panel-titulo">
+                    <i class="bi bi-bar-chart-line"></i> Precisión del modelo (R²)
+                </h5>
+
                 <div class="table-responsive">
                     <table class="table tabla-moderna">
                         <thead>
                             <tr>
-                                <th class="th-sort" onclick="ordenarTabla('r2', 'columna')">Variable <i class="bi bi-arrow-down-up"></i></th>
-                                <th class="th-sort" onclick="ordenarTabla('r2', 'r2')">R² <i class="bi bi-arrow-down-up"></i></th>
+                                <th class="th-sort" onclick="ordenarTabla('r2', 'columna')">
+                                    Variable <i class="bi bi-arrow-down-up"></i>
+                                </th>
+                                <th class="th-sort" onclick="ordenarTabla('r2', 'r2')">
+                                    R² <i class="bi bi-arrow-down-up"></i>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="tablaR2"></tbody>
                     </table>
                 </div>
+
                 <div id="r2Vacio" class="tabla-vacia">
                     <i class="bi bi-bar-chart"></i>
                     <p>Todavía no hay modelo entrenado</p>
                 </div>
+
             </div>
         </div>
     </div>
@@ -99,12 +121,16 @@
     <div class="col-md-6">
         <div class="card panel h-100">
             <div class="card-body">
-                <h5 class="panel-titulo"><i class="bi bi-magic"></i> Predicción</h5>
+
+                <h5 class="panel-titulo">
+                    <i class="bi bi-magic"></i> Predicción
+                </h5>
 
                 <div id="accionesPrediccion" class="d-flex gap-2 mb-3" style="display:none;">
                     <button class="btn btn-agregar btn-sm" onclick="exportarPrediccionPDF()">
                         <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
                     </button>
+
                     <button class="btn btn-agregar btn-sm" onclick="guardarPrediccionDataset()">
                         <i class="bi bi-save"></i> Guardar en el dataset
                     </button>
@@ -114,20 +140,27 @@
                     <table class="table tabla-moderna">
                         <thead>
                             <tr>
-                                <th class="th-sort" onclick="ordenarTabla('prediccion', 'columna')">Variable <i class="bi bi-arrow-down-up"></i></th>
-                                <th class="th-sort" onclick="ordenarTabla('prediccion', 'prediccion')">Predicción <i class="bi bi-arrow-down-up"></i></th>
+                                <th class="th-sort" onclick="ordenarTabla('prediccion', 'columna')">
+                                    Variable <i class="bi bi-arrow-down-up"></i>
+                                </th>
+                                <th class="th-sort" onclick="ordenarTabla('prediccion', 'prediccion')">
+                                    Predicción <i class="bi bi-arrow-down-up"></i>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="tablaPrediccion"></tbody>
                     </table>
                 </div>
+
                 <div id="prediccionVacia" class="tabla-vacia">
                     <i class="bi bi-graph-up"></i>
                     <p>Todavía no hay predicción calculada</p>
                 </div>
+
             </div>
         </div>
     </div>
+
 </div>
 
 {% endblock %}
