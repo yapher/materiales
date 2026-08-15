@@ -3,51 +3,88 @@
 {% block title %}Dataset - Polvos Coladores{% endblock %}
 
 {% block content %}
-<div class="text-center mb-5">
-    <h1 class="titulo-app"><i class="bi bi-table"></i> Dataset Maestro</h1>
-    <p class="subtitulo">
-        Esta es la plantilla que se copia a cada usuario nuevo.
-        Editar acá no modifica retroactivamente los datasets que los
-        usuarios ya tienen descargados en su sesión.
-    </p>
-</div>
+<div
+    class="dataset-tabla-app"
+    data-url-base="{{ url_for('admin.dataset_filas') }}"
+    data-cabecera-id="cabeceraDataset"
+    data-cuerpo-id="cuerpoDataset"
+    data-mensaje-id="mensajeDataset"
+    data-mensaje-texto-id="mensajeDatasetTexto"
+    data-total-id="totalFilasDataset"
+    data-modal-id="modalInconsistencia"
+    data-motivo-id="motivoInconsistencia"
+>
+    <div class="text-center mb-5">
+        <h1 class="titulo-app">
+            <i class="bi bi-table"></i> Dataset Maestro
+        </h1>
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <a href="{{ url_for('admin.index') }}" class="btn btn-agregar">
-        <i class="bi bi-arrow-left"></i> Volver a Admin
-    </a>
-    <button class="btn btn-accion" onclick="cargarTabla()">
-        <i class="bi bi-arrow-clockwise"></i> Actualizar
-    </button>
-</div>
+        <p class="subtitulo">
+            Esta es la plantilla que se copia a cada usuario nuevo.
+            Editar acá no modifica retroactivamente los datasets que los
+            usuarios ya tienen descargados en su sesión.
+        </p>
+    </div>
 
-<div id="mensajeDataset" class="mensaje-box mb-3" style="display:none;">
-    <span id="mensajeDatasetTexto"></span>
-</div>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <a href="{{ url_for('admin.index') }}" class="btn btn-agregar">
+            <i class="bi bi-arrow-left"></i> Volver a Admin
+        </a>
 
-<div class="card panel mb-4">
-    <div class="card-body">
-        <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
-            <table class="table tabla-moderna tabla-fija-header" id="tablaDataset">
-                <thead id="cabeceraDataset"></thead>
-                <tbody id="cuerpoDataset"></tbody>
-            </table>
+        <button class="btn btn-accion" data-accion="actualizar">
+            <i class="bi bi-arrow-clockwise"></i> Actualizar
+        </button>
+    </div>
+
+    <div id="mensajeDataset" class="mensaje-box mb-3" style="display:none;">
+        <span id="mensajeDatasetTexto"></span>
+    </div>
+
+    <div class="card panel mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <span class="text-muted small">
+                    <i class="bi bi-list-ol"></i>
+                    Total de filas:
+                    <strong id="totalFilasDataset">0</strong>
+                </span>
+
+                <span class="text-muted small">
+                    <i class="bi bi-info-circle"></i>
+                    Las filas inconsistentes se marcan con un ícono de advertencia.
+                </span>
+            </div>
+
+            <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
+                <table class="table tabla-moderna tabla-fija-header" id="tablaDataset">
+                    <thead id="cabeceraDataset"></thead>
+                    <tbody id="cuerpoDataset"></tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Modal con el detalle de la inconsistencia -->
-<div class="modal fade" id="modalInconsistencia" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content panel">
-            <div class="modal-header" style="border-bottom:1px solid var(--panel-border);">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle-fill icono-advertencia"></i> Fila inconsistente
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <p id="motivoInconsistencia" class="mb-0 text-muted"></p>
+    <!-- Modal con el detalle de la inconsistencia -->
+    <div class="modal fade" id="modalInconsistencia" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content panel">
+                <div class="modal-header" style="border-bottom:1px solid var(--panel-border);">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill icono-advertencia"></i>
+                        Fila inconsistente
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"
+                        aria-label="Cerrar"
+                    ></button>
+                </div>
+
+                <div class="modal-body">
+                    <p id="motivoInconsistencia" class="mb-0 text-muted"></p>
+                </div>
             </div>
         </div>
     </div>
@@ -55,137 +92,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-let columnasDataset = [];
-let filasDataset = [];
-let editandoIndice = null;
-
-function setMensajeDataset(texto, esError) {
-    const box = document.getElementById('mensajeDataset');
-    const span = document.getElementById('mensajeDatasetTexto');
-    span.textContent = texto;
-    box.style.borderColor = esError ? '#e07f7f' : '';
-    box.style.color = esError ? '#e0a97f' : '';
-    box.style.display = texto ? 'block' : 'none';
-}
-
-function mostrarMotivo(indice) {
-    const fila = filasDataset.find(f => f.indice === indice);
-    if (!fila) return;
-    document.getElementById('motivoInconsistencia').textContent = fila.motivo || 'Sin detalle.';
-    const modal = new bootstrap.Modal(document.getElementById('modalInconsistencia'));
-    modal.show();
-}
-
-function cargarTabla() {
-    fetch('{{ url_for("admin.dataset_filas") }}')
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) throw new Error(data.error);
-            columnasDataset = data.columnas;
-            filasDataset = data.filas;
-            editandoIndice = null;
-            renderTabla();
-        })
-        .catch(err => setMensajeDataset(err.message, true));
-}
-
-function renderTabla() {
-    const cabecera = document.getElementById('cabeceraDataset');
-    const cuerpo = document.getElementById('cuerpoDataset');
-
-    cabecera.innerHTML = `
-        <tr>
-            <th title="Fila con datos inconsistentes"></th>
-            ${columnasDataset.map(c => `<th>${c}</th>`).join('')}
-            <th>Acciones</th>
-        </tr>`;
-
-    cuerpo.innerHTML = filasDataset.map(fila => {
-        const editando = editandoIndice === fila.indice;
-
-        const advertencia = fila.inconsistente
-            ? `<span class="chip-advertencia" onclick="mostrarMotivo(${fila.indice})" title="Ver detalle">
-                   <i class="bi bi-exclamation-triangle-fill"></i>
-               </span>`
-            : '';
-
-        const celdas = columnasDataset.map(col => {
-            const valor = fila.valores[col];
-            if (editando) {
-                return `<td><input type="number" step="any" class="form-control form-control-sm"
-                            style="min-width:90px;"
-                            data-col="${col}"
-                            value="${valor === null || valor === undefined ? '' : valor}"></td>`;
-            }
-            return `<td>${valor === null || valor === undefined ? '<span class="text-muted">—</span>' : valor}</td>`;
-        }).join('');
-
-        const acciones = editando
-            ? `<button class="btn-fila-accion accion-guardar" onclick="guardarFila(${fila.indice})" title="Guardar"><i class="bi bi-check-lg"></i></button>
-               <button class="btn-fila-accion accion-cancelar" onclick="cancelarEdicion()" title="Cancelar"><i class="bi bi-x-lg"></i></button>`
-            : `<button class="btn-fila-accion accion-editar" onclick="editarFila(${fila.indice})" title="Editar"><i class="bi bi-pencil"></i></button>
-               <button class="btn-fila-accion accion-borrar" onclick="borrarFila(${fila.indice})" title="Eliminar"><i class="bi bi-trash"></i></button>
-               <a class="btn-fila-accion accion-pdf" href="/admin/dataset/filas/${fila.indice}/pdf" title="Exportar a PDF"><i class="bi bi-file-earmark-pdf"></i></a>`;
-
-        const claseFila = fila.inconsistente ? 'fila-inconsistente' : '';
-
-        return `<tr class="${claseFila}">
-            <td>${advertencia}</td>
-            ${celdas}
-            <td class="text-nowrap"><div class="d-flex gap-1">${acciones}</div></td>
-        </tr>`;
-    }).join('');
-}
-
-function editarFila(indice) {
-    editandoIndice = indice;
-    renderTabla();
-}
-
-function cancelarEdicion() {
-    editandoIndice = null;
-    renderTabla();
-}
-
-function guardarFila(indice) {
-    const fila = document.querySelectorAll(`#cuerpoDataset tr`)[filasDataset.findIndex(f => f.indice === indice)];
-    const inputs = fila.querySelectorAll('input[data-col]');
-
-    const valores = {};
-    inputs.forEach(inp => {
-        valores[inp.dataset.col] = inp.value === '' ? null : parseFloat(inp.value);
-    });
-
-    fetch(`/admin/dataset/filas/${indice}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(valores),
-    })
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) throw new Error(data.error);
-            setMensajeDataset(data.mensaje, false);
-            cargarTabla();
-        })
-        .catch(err => setMensajeDataset(err.message, true));
-}
-
-function borrarFila(indice) {
-    confirmarModerno('¿Seguro que querés eliminar esta fila del dataset maestro?', 'Eliminar fila').then(ok => {
-        if (!ok) return;
-
-        fetch(`/admin/dataset/filas/${indice}`, { method: 'DELETE' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) throw new Error(data.error);
-                setMensajeDataset(data.mensaje, false);
-                cargarTabla();
-            })
-            .catch(err => setMensajeDataset(err.message, true));
-    });
-}
-
-cargarTabla();
-</script>
+<script src="{{ url_for('static', filename='js/dataset_tabla.js') }}"></script>
 {% endblock %}

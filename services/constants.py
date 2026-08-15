@@ -1,102 +1,170 @@
 """
-Constantes compartidas entre mezcla_service.py y excel_service.py.
+Constantes y helpers de nombres.
+
+IMPORTANTE:
+Las variables entrenables YA NO se definen acá.
+Ahora se descubren dinámicamente desde el Excel en services/excel_service.py.
+
+Este archivo mantiene:
+- sufijo de columnas de composición
+- detección de columna de temperatura
+- etiquetas conocidas para mostrar bonito
+- compatibilidad hacia atrás con imports viejos
 """
 
-ELEMENTOS = [
-    "CaO", "SiO2", "Al2O3", "MgO",
-    "Na2O", "K2O", "Li2O", "CaF2",
-    "Fe2O3", "MnO", "TiO2",
+import re
+
+
+# ==========================================================
+# Composición
+# ==========================================================
+SUFIJO_COMPOSICION = "_pct"
+
+
+# ==========================================================
+# Temperatura
+# ==========================================================
+PREFERENCIA_TEMPERATURA = [
+    "Temperatura_K",
+    "Temperatura_k",
+    "Temperatura_C",
+    "Temperatura",
+    "Temperature_K",
+    "Temperature_C",
+    "Temperature",
+    "Temp_K",
+    "Temp_C",
+    "Temp",
 ]
 
-COLUMNAS = [f"{e}_pct" for e in ELEMENTOS]
-COLUMNAS_MODELO = COLUMNAS + ["Temperatura_C"]
+# Solo se considera columna de temperatura si es exactamente algo como:
+# Temperatura, Temperatura_K, Temperatura_C, Temperature_K, Temp, etc.
+# Evita confundir con variables objetivo tipo "Temperatura_Liquidus_K".
+_PATRON_TEMPERATURA = re.compile(r"^temp(eratura|erature)?(_(k|c))?$")
 
 
-VARIABLE_ENTRENABLE_POR_DEFECTO = "Densidad_kg_m3"
+# ==========================================================
+# Etiquetas conocidas (solo para mostrar más lindo)
+# ==========================================================
+MAPA_ETIQUETAS = {
+    "Densidad_kg_m3": "Densidad (kg/m³)",
+    "Viscosidad_Pa_s": "Viscosidad (Pa·s)",
+    "Conductividad_Termica_W_mK": "Conductividad térmica (W/mK)",
+    "Inicio_Cristalizacion_C": "Inicio de cristalización (°C)",
+    "Fraccion_Cristalina_pct": "Fracción cristalina (%)",
+    "Presencia_Cuspidina": "Presencia de cuspidina",
+    "C_libre_pct": "Carbono libre (%)",
+    "Alcalinos_tot": "Alcalinos totales",
+    "Oxidos_Basicos_tot": "Óxidos básicos totales",
+    "Oxidos_Acidos_tot": "Óxidos ácidos totales",
+    "Fluoruros_totales": "Fluoruros totales",
+    "Basicidad_CaO_SiO2": "Basicidad CaO/SiO₂",
+    "Tiempo_Mantenimiento_min": "Tiempo de mantenimiento (min)",
+    "Velocidad_Calentamiento_C_min": "Velocidad de calentamiento (°C/min)",
+}
 
-VARIABLES_ENTRENABLES = [
-    {
-        "valor": "Densidad_kg_m3",
-        "etiqueta": "Densidad (kg/m³)",
-        "descripcion": "Densidad aparente o volumétrica del polvo colador.",
-        "por_defecto": True,
-    },
-    {
-        "valor": "Viscosidad_Pa_s",
-        "etiqueta": "Viscosidad (Pa·s)",
-        "descripcion": "Viscosidad del material a la temperatura de proceso.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Conductividad_Termica_W_mK",
-        "etiqueta": "Conductividad térmica (W/mK)",
-        "descripcion": "Capacidad del material de conducir calor.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Inicio_Cristalizacion_C",
-        "etiqueta": "Inicio de cristalización (°C)",
-        "descripcion": "Temperatura donde comienza la cristalización.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Fraccion_Cristalina_pct",
-        "etiqueta": "Fracción cristalina (%)",
-        "descripcion": "Porcentaje de fase cristalina.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Presencia_Cuspidina",
-        "etiqueta": "Presencia de cuspidina",
-        "descripcion": "Indicador de presencia de cuspidina.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "C_libre_pct",
-        "etiqueta": "Carbono libre (%)",
-        "descripcion": "Porcentaje de carbono libre.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Alcalinos_tot",
-        "etiqueta": "Alcalinos totales",
-        "descripcion": "Contenido total de óxidos alcalinos.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Oxidos_Basicos_tot",
-        "etiqueta": "Óxidos básicos totales",
-        "descripcion": "Suma de óxidos básicos.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Oxidos_Acidos_tot",
-        "etiqueta": "Óxidos ácidos totales",
-        "descripcion": "Suma de óxidos ácidos.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Fluoruros_totales",
-        "etiqueta": "Fluoruros totales",
-        "descripcion": "Contenido total de fluoruros.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Basicidad_CaO_SiO2",
-        "etiqueta": "Basicidad CaO/SiO₂",
-        "descripcion": "Relación básica CaO / SiO₂.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Tiempo_Mantenimiento_min",
-        "etiqueta": "Tiempo de mantenimiento (min)",
-        "descripcion": "Tiempo de mantenimiento térmico.",
-        "por_defecto": False,
-    },
-    {
-        "valor": "Velocidad_Calentamiento_C_min",
-        "etiqueta": "Velocidad de calentamiento (°C/min)",
-        "descripcion": "Velocidad de calentamiento del ensayo.",
-        "por_defecto": False,
-    },
-]
+MAPA_DESCRIPCIONES = {
+    "Densidad_kg_m3": "Densidad aparente o volumétrica del polvo colador.",
+    "Viscosidad_Pa_s": "Viscosidad del material a la temperatura de proceso.",
+    "Conductividad_Termica_W_mK": "Capacidad del material de conducir calor.",
+    "Inicio_Cristalizacion_C": "Temperatura donde comienza la cristalización.",
+    "Fraccion_Cristalina_pct": "Porcentaje de fase cristalina.",
+    "Presencia_Cuspidina": "Indicador de presencia de cuspidina.",
+    "C_libre_pct": "Porcentaje de carbono libre.",
+    "Alcalinos_tot": "Contenido total de óxidos alcalinos.",
+    "Oxidos_Basicos_tot": "Suma de óxidos básicos.",
+    "Oxidos_Acidos_tot": "Suma de óxidos ácidos.",
+    "Fluoruros_totales": "Contenido total de fluoruros.",
+    "Basicidad_CaO_SiO2": "Relación básica CaO / SiO₂.",
+    "Tiempo_Mantenimiento_min": "Tiempo de mantenimiento térmico.",
+    "Velocidad_Calentamiento_C_min": "Velocidad de calentamiento del ensayo.",
+}
+
+
+# ==========================================================
+# Helpers
+# ==========================================================
+def normalizar_nombre_columna(columna):
+    """
+    Normaliza el nombre de una columna para comparaciones:
+    - minúsculas
+    - sin espacios
+    - guiones bajos
+    """
+    return str(columna).strip().lower().replace(" ", "_")
+
+
+def es_columna_temperatura(columna):
+    """
+    Devuelve True si la columna parece ser la temperatura de proceso.
+    """
+    norm = normalizar_nombre_columna(columna)
+    return bool(_PATRON_TEMPERATURA.match(norm))
+
+
+def etiqueta_amigable(columna):
+    """
+    Devuelve una etiqueta para mostrar en la UI.
+    Si la columna está en el mapa conocido, usa esa etiqueta.
+    Si no, convierte 'Nombre_Columna' en 'Nombre Columna'.
+    """
+    columna = str(columna)
+
+    if columna in MAPA_ETIQUETAS:
+        return MAPA_ETIQUETAS[columna]
+
+    norm = normalizar_nombre_columna(columna)
+    for clave, valor in MAPA_ETIQUETAS.items():
+        if normalizar_nombre_columna(clave) == norm:
+            return valor
+
+    return columna.replace("_", " ").strip()
+
+
+def descripcion_variable(columna):
+    """
+    Devuelve una descripción para la UI.
+    """
+    columna = str(columna)
+
+    if columna in MAPA_DESCRIPCIONES:
+        return MAPA_DESCRIPCIONES[columna]
+
+    norm = normalizar_nombre_columna(columna)
+    for clave, valor in MAPA_DESCRIPCIONES.items():
+        if normalizar_nombre_columna(clave) == norm:
+            return valor
+
+    return f"Variable '{columna}' detectada automáticamente del dataset."
+
+
+def etiqueta_temperatura(columna):
+    """
+    Devuelve el label para el input de temperatura.
+    """
+    if not columna:
+        return "Temperatura"
+
+    norm = normalizar_nombre_columna(columna)
+
+    if norm.endswith("_k"):
+        return "Temperatura (K)"
+
+    if norm.endswith("_c"):
+        return "Temperatura (°C)"
+
+    return etiqueta_amigable(columna)
+
+
+# ==========================================================
+# Compatibilidad hacia atrás
+#
+# Antes el sistema importaba estas constantes fijas.
+# Se dejan vacías para no romper imports viejos, pero ya no
+# son la fuente de verdad.
+# ==========================================================
+ELEMENTOS = []
+COLUMNAS = []
+COLUMNAS_MODELO = []
+VARIABLE_ENTRENABLE_POR_DEFECTO = None
+VARIABLES_ENTRENABLES = []

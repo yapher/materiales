@@ -3,150 +3,103 @@
 {% block title %}Admin - Polvos Coladores{% endblock %}
 
 {% block content %}
-<div class="text-center mb-5">
-    <h1 class="titulo-app"><i class="bi bi-sliders"></i> Panel de Admin</h1>
-    <p class="subtitulo">Estado del sistema y mantenimiento del modelo</p>
-</div>
+<div
+    id="adminApp"
+    data-estado-url="{{ url_for('admin.estado') }}"
+    data-recargar-url="{{ url_for('admin.recargar') }}"
+    data-reset-url="{{ url_for('admin.reset_modelo') }}"
+    data-subir-dataset-url="{{ url_for('admin.subir_dataset') }}"
+>
+    <div class="text-center mb-5">
+        <h1 class="titulo-app">
+            <i class="bi bi-sliders"></i> Panel de Admin
+        </h1>
+        <p class="subtitulo">
+            Estado del sistema y mantenimiento del modelo
+        </p>
+    </div>
 
-<div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
-    <a href="{{ url_for('admin.dataset') }}" class="btn btn-accion">
-        <i class="bi bi-table"></i> Administrar Dataset
-    </a>
-    <a href="{{ url_for('admin.usuarios') }}" class="btn btn-accion">
-        <i class="bi bi-people"></i> Administrar Usuarios
-    </a>
-</div>
+    <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
+        <a href="{{ url_for('admin.dataset') }}" class="btn btn-accion">
+            <i class="bi bi-table"></i> Administrar Dataset
+        </a>
 
-<div class="card panel mb-4">
-    <div class="card-body">
-        <h5 class="panel-titulo"><i class="bi bi-activity"></i> Estado actual</h5>
-        <div id="estadoBox" class="mb-3 text-muted">Cargando estado...</div>
-        <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-accion" onclick="cargarEstado()">
-                <i class="bi bi-arrow-clockwise"></i> Actualizar
-            </button>
-            <button class="btn btn-accion" onclick="recargarDataset()">
-                <i class="bi bi-file-earmark-arrow-up"></i> Recargar dataset
-            </button>
-            <button class="btn btn-accion" onclick="resetModelo()">
-                <i class="bi bi-trash"></i> Borrar modelo
-            </button>
+        <a href="{{ url_for('admin.usuarios') }}" class="btn btn-accion">
+            <i class="bi bi-people"></i> Administrar Usuarios
+        </a>
+    </div>
+
+    <div class="card panel mb-4">
+        <div class="card-body">
+            <h5 class="panel-titulo">
+                <i class="bi bi-activity"></i> Estado actual
+            </h5>
+
+            <div id="estadoBox" class="mb-3 text-muted">
+                Cargando estado...
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <input
+                    type="file"
+                    id="inputDatasetExcel"
+                    accept=".xlsx,.xlsm"
+                    hidden
+                >
+
+                <button id="btnSubirDataset" class="btn btn-accion">
+                    <i class="bi bi-upload"></i> Subir nuevo dataset
+                </button>
+
+                <button id="btnRecargarDataset" class="btn btn-accion">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Recargar dataset
+                </button>
+
+                <button id="btnResetModelo" class="btn btn-accion">
+                    <i class="bi bi-trash"></i> Borrar modelo
+                </button>
+            </div>
+
+            <p class="text-muted small mt-3 mb-0">
+                <i class="bi bi-info-circle"></i>
+                Al subir un nuevo Excel se reemplaza el dataset maestro,
+                se reinicia tu dataset personal y se borra el modelo
+                entrenado actual.
+            </p>
         </div>
     </div>
-</div>
 
-<div class="card panel mb-4">
-    <div class="card-body">
-        <h5 class="panel-titulo"><i class="bi bi-bar-chart-line"></i> Último entrenamiento</h5>
-        <div class="table-responsive">
-            <table class="table tabla-moderna">
-                <thead>
-                    <tr>
-                        <th>Variable</th>
-                        <th>R²</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaR2Admin"></tbody>
-            </table>
-        </div>
-        <div id="r2AdminVacio" class="tabla-vacia">
-            <i class="bi bi-bar-chart"></i>
-            <p>Todavía no hay ningún modelo entrenado</p>
+    <div class="card panel mb-4">
+        <div class="card-body">
+            <h5 class="panel-titulo">
+                <i class="bi bi-bar-chart-line"></i> Último entrenamiento
+            </h5>
+
+            <div class="table-responsive">
+                <table class="table tabla-moderna">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>R²</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaR2Admin"></tbody>
+                </table>
+            </div>
+
+            <div id="r2AdminVacio" class="tabla-vacia">
+                <i class="bi bi-bar-chart"></i>
+                <p>Todavía no hay ningún modelo entrenado</p>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="mensajeAdmin" class="mensaje-box mb-4" style="display:none;">
-    <span id="mensajeAdminTexto"></span>
+    <div id="mensajeAdmin" class="mensaje-box mb-4" style="display:none;">
+        <span id="mensajeAdminTexto"></span>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function setMensajeAdmin(texto) {
-    const box = document.getElementById('mensajeAdmin');
-    document.getElementById('mensajeAdminTexto').textContent = texto;
-    box.style.display = texto ? 'block' : 'none';
-}
-
-function claseR2Admin(valor) {
-    if (valor >= 0.8) return 'bueno';
-    if (valor >= 0.5) return 'medio';
-    return 'malo';
-}
-
-function renderTablaR2Admin(modeloInfo) {
-    const tbody = document.getElementById('tablaR2Admin');
-    const vacio = document.getElementById('r2AdminVacio');
-
-    const filas = (modeloInfo && modeloInfo.entrenado) ? modeloInfo.tabla_r2 : [];
-
-    if (!filas || filas.length === 0) {
-        tbody.innerHTML = '';
-        vacio.style.display = 'block';
-        return;
-    }
-    vacio.style.display = 'none';
-
-    tbody.innerHTML = filas.map(row => {
-        const clase = claseR2Admin(row.r2);
-        return `
-            <tr>
-                <td><span class="var-nombre">${row.columna}</span></td>
-                <td><span class="r2-valor r2-txt-${clase}">${row.r2}</span></td>
-            </tr>`;
-    }).join('');
-}
-
-function cargarEstado() {
-    fetch('{{ url_for("admin.estado") }}')
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) throw new Error(data.error);
-
-            document.getElementById('estadoBox').innerHTML = `
-                <p class="mb-1"><strong>Tu sesión:</strong> <code>${data.usuario}</code></p>
-                <p class="mb-1"><strong>Dataset cargado:</strong> ${data.dataset_cargado ? 'Sí (' + data.filas_dataset + ' filas)' : 'No'}</p>
-                <p class="mb-1"><strong>Modelo entrenado en memoria:</strong> ${data.modelo_en_memoria ? 'Sí' : 'No'}</p>
-                <p class="mb-0"><strong>Modelo persistido en disco:</strong> ${data.modelo_persistido ? 'Sí' : 'No'}</p>
-                ${data.modelo_info && data.modelo_info.entrenado
-                    ? `<p class="mb-0 mt-2 text-muted">Último entrenamiento: ${data.modelo_info.fecha} (${data.modelo_info.tiempo_segundos}s)</p>`
-                    : ''}
-            `;
-
-            renderTablaR2Admin(data.modelo_info);
-        })
-        .catch(err => setMensajeAdmin(err.message));
-}
-
-function recargarDataset() {
-    setMensajeAdmin('Recargando dataset...');
-
-    fetch('{{ url_for("admin.recargar") }}', { method: 'POST' })
-        .then(r => r.json())
-        .then(data => {
-            if (data.error) throw new Error(data.error);
-            setMensajeAdmin(data.mensaje);
-            cargarEstado();
-        })
-        .catch(err => setMensajeAdmin(err.message));
-}
-
-function resetModelo() {
-    confirmarModerno('¿Seguro que querés borrar tu modelo? Vas a tener que reentrenar.', 'Borrar modelo').then(ok => {
-        if (!ok) return;
-
-        fetch('{{ url_for("admin.reset_modelo") }}', { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) throw new Error(data.error);
-                setMensajeAdmin(data.mensaje);
-                cargarEstado();
-            })
-            .catch(err => setMensajeAdmin(err.message));
-    });
-}
-
-cargarEstado();
-</script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}

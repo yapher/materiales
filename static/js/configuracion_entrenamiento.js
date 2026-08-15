@@ -1,26 +1,23 @@
 (function () {
-    const STORAGE_KEY = "configuracion_variables_entrenamiento";
+    const STORAGE_KEY = "configuracion_variables_entrenamiento_v2";
+    const OLD_STORAGE_KEY = "configuracion_variables_entrenamiento";
 
-    let seleccion = new Set(["Densidad_kg_m3"]);
+    let seleccion = new Set();
 
     function modalElement() {
         return document.getElementById("modalConfiguracionEntrenamiento");
-    }
-
-    function defaultVariable() {
-        const modal = modalElement();
-
-        if (!modal) {
-            return "Densidad_kg_m3";
-        }
-
-        return modal.dataset.variableDefault || "Densidad_kg_m3";
     }
 
     function botonesVariables() {
         return document.querySelectorAll(
             "#modalConfiguracionEntrenamiento .variable-toggle"
         );
+    }
+
+    function variablesDisponibles() {
+        return Array.from(botonesVariables())
+            .map(boton => boton.dataset.variable)
+            .filter(Boolean);
     }
 
     function contadorElement() {
@@ -31,39 +28,84 @@
         return document.getElementById("configAdvertencia");
     }
 
+    function defaultVariable() {
+        const modal = modalElement();
+
+        if (!modal) {
+            const disponibles = variablesDisponibles();
+            return disponibles.length ? disponibles[0] : "";
+        }
+
+        const desdeModal = modal.dataset.variableDefault || "";
+
+        if (desdeModal && variablesDisponibles().includes(desdeModal)) {
+            return desdeModal;
+        }
+
+        const disponibles = variablesDisponibles();
+        return disponibles.length ? disponibles[0] : "";
+    }
+
     function guardarSeleccion() {
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(Array.from(seleccion))
-        );
+        try {
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(Array.from(seleccion))
+            );
+        } catch (error) {
+            console.warn("No se pudo guardar la configuración en localStorage", error);
+        }
+    }
+
+    function leerSeleccionGuardada() {
+        try {
+            let guardado = localStorage.getItem(STORAGE_KEY);
+
+            if (guardado === null) {
+                guardado = localStorage.getItem(OLD_STORAGE_KEY);
+            }
+
+            if (guardado === null) {
+                return [];
+            }
+
+            const lista = JSON.parse(guardado);
+
+            if (!Array.isArray(lista)) {
+                return [];
+            }
+
+            return lista;
+        } catch (error) {
+            console.warn("No se pudo leer la configuración guardada", error);
+            return [];
+        }
     }
 
     function cargarSeleccion() {
-        const guardado = localStorage.getItem(STORAGE_KEY);
+        const disponibles = variablesDisponibles();
+        const guardado = leerSeleccionGuardada();
 
-        if (guardado === null) {
-            seleccion = new Set([defaultVariable()]);
-            guardarSeleccion();
-            return;
+        const validas = guardado.filter(variable =>
+            disponibles.includes(variable)
+        );
+
+        if (validas.length > 0) {
+            seleccion = new Set(validas);
+        } else {
+            const def = defaultVariable();
+            seleccion = def ? new Set([def]) : new Set();
         }
 
-        try {
-            const lista = JSON.parse(guardado);
-
-            if (Array.isArray(lista)) {
-                seleccion = new Set(lista);
-            } else {
-                seleccion = new Set([defaultVariable()]);
-            }
-        } catch {
-            seleccion = new Set([defaultVariable()]);
-        }
+        guardarSeleccion();
     }
 
     function setAdvertencia(visible) {
         const alerta = advertenciaElement();
 
-        if (!alerta) return;
+        if (!alerta) {
+            return;
+        }
 
         alerta.style.display = visible ? "block" : "none";
     }
@@ -71,7 +113,9 @@
     function actualizarContador() {
         const contador = contadorElement();
 
-        if (!contador) return;
+        if (!contador) {
+            return;
+        }
 
         const cantidad = seleccion.size;
 
@@ -102,7 +146,9 @@
     }
 
     function toggleVariable(variable) {
-        if (!variable) return;
+        if (!variable) {
+            return;
+        }
 
         if (seleccion.has(variable)) {
             seleccion.delete(variable);
@@ -115,7 +161,14 @@
     }
 
     function seleccionarDefault() {
-        seleccion = new Set([defaultVariable()]);
+        const def = defaultVariable();
+
+        if (!def) {
+            seleccion.clear();
+        } else {
+            seleccion = new Set([def]);
+        }
+
         guardarSeleccion();
         actualizarUI();
     }
@@ -167,10 +220,10 @@
             });
         });
 
-        const btnDensidad = document.getElementById("btnConfigurarDensidad");
+        const btnDefault = document.getElementById("btnConfigurarDensidad");
 
-        if (btnDensidad) {
-            btnDensidad.addEventListener("click", seleccionarDefault);
+        if (btnDefault) {
+            btnDefault.addEventListener("click", seleccionarDefault);
         }
 
         const btnLimpiar = document.getElementById("btnLimpiarVariables");

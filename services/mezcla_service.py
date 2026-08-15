@@ -8,14 +8,15 @@ from datetime import datetime
 import joblib
 import numpy as np
 
-from .excel_service import cargar_dataset
-from .ml_service import entrenar_una_columna
-from .constants import (
-    ELEMENTOS,
-    COLUMNAS,
-    COLUMNAS_MODELO,
-    VARIABLE_ENTRENABLE_POR_DEFECTO,
+from .excel_service import (
+    cargar_dataset,
+    obtener_esquema_dataset,
+    obtener_feature_columns,
 )
+
+from .ml_service import entrenar_una_columna
+
+from .constants import es_columna_temperatura
 
 from utils import (
     validar_mezcla_100,
@@ -25,7 +26,6 @@ from utils import (
     archivo_info_usuario,
     archivo_ultima_prediccion_usuario,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -40,17 +40,21 @@ _lock_estado = threading.Lock()
 
 def obtener_usuario():
     user_id = obtener_user_id()
+
     with _lock_global:
         if user_id not in _modelos:
             _modelos[user_id] = None
+
     return user_id
 
 
 def obtener_lock_usuario(user_id=None):
     user_id = user_id or obtener_user_id()
+
     with _lock_global:
         if user_id not in _locks:
             _locks[user_id] = threading.Lock()
+
     return _locks[user_id]
 
 
@@ -62,36 +66,62 @@ def _set_estado_entrenamiento(user_id, **kwargs):
 
 def obtener_estado_entrenamiento():
     user_id = obtener_user_id()
+
     with _lock_estado:
         estado = _estado_entrenamiento.get(user_id)
+
     if estado is None:
         return {"corriendo": False, "listo": False}
+
     return dict(estado)
 
 
-def _normalizar_targets(targets):
+def _normalizar_targets(targets, user_id=None):
+    """
+    Normaliza la lista de variables a entrenar.
+
+    Si targets es None, usa la variable por defecto detectada
+    dinámicamente desde el dataset.
+    """
     if targets is None:
-        return [VARIABLE_ENTRENABLE_POR_DEFECTO]
+        esquema = obtener_esquema_dataset(user_id)
+        default_target = esquema.get("variable_entrenable_default")
+
+        if not default_target:
+            raise ValueError(
+                "El dataset actual no tiene variables entrenables detectadas."
+            )
+
+        return [default_target]
+
     if not isinstance(targets, list):
         raise ValueError("Las variables a modelar deben enviarse como lista")
+
     limpias = []
+
     for item in targets:
         if item is None:
             continue
+
         valor = str(item).strip()
+
         if valor and valor not in limpias:
             limpias.append(valor)
+
     if not limpias:
         raise ValueError("Seleccioná al menos una variable para modelar")
+
     return limpias
 
 
 def cargar_modelo():
     user_id = obtener_usuario()
     ruta = archivo_modelo_usuario()
+
     if _modelos[user_id] is None and os.path.exists(ruta):
         logger.info("Cargando modelo persistido del usuario %s", user_id)
         _modelos[user_id] = joblib.load(ruta)
+
     return _modelos[user_id]
 
 
@@ -108,123 +138,252 @@ def _guardar_info_modelo(user_id, tabla_r2, tiempo, variables_entrenadas=None):
         "fecha": datetime.now().isoformat(timespec="seconds"),
         "variables_entrenadas": variables_entrenadas or [],
     }
+
     with open(archivo_info_usuario(user_id), "w", encoding="utf-8") as f:
         json.dump(info, f, ensure_ascii=False, indent=2)
+
     return info
 
 
 def iniciar_entrenamiento(targets=None):
-    targets = _normalizar_targets(targets)
     user_id = obtener_usuario()
+
+    targets = _normalizar_targets(targets, user_id)
+
     lock = obtener_lock_usuario(user_id)
+
     if not lock.acquire(blocking=False):
         return False
+
     _set_estado_entrenamiento(
         user_id,
-        corriendo=True, listo=False, error=None,
-        progreso=0, total=len(targets), columna=None, tiempo=0,
+        corriendo=True,
+        listo=False,
+        error=None,
+        progreso=0,
+        total=len(targets),
+        columna=None,
+        tiempo=0,
         variables=targets,
     )
+
     hilo = threading.Thread(
         target=_entrenar_en_background,
         args=(user_id, lock, targets),
         daemon=True,
     )
+
     hilo.start()
+
     return True
 
 
-def _entrenar_en_background(user_id, lock, targets=None):
+def _entrenar_en_background(user_id, lock, targets):
     try:
-        targets = _normalizar_targets(targets)
         df = cargar_dataset(user_id)
-        invalidas = [t for t in targets if t not in df.columns or t in COLUMNAS_MODELO]
+
+        features = obtener_feature_columns(df)
+
+        if not features:
+            raise ValueError(
+                "No se detectaron columnas de entrada en el dataset. "
+                "Se esperan columnas *_pct y, si existe, una columna de temperatura."
+            )
+
+        invalidas = [
+            t for t in targets
+            if t not in df.columns or t in features
+        ]
+
         if invalidas:
             _set_estado_entrenamiento(
                 user_id,
-                corriendo=False, listo=False,
+                corriendo=False,
+                listo=False,
                 error=f"Variables inválidas: {', '.join(invalidas)}",
             )
             return
-        columnas_y = targets
-        total = len(columnas_y)
+
         inicio = time.time()
+
         modelos = {}
         scores = {}
-        _set_estado_entrenamiento(user_id, total=total, variables=columnas_y)
-        for i, columna in enumerate(columnas_y, start=1):
+
+        _set_estado_entrenamiento(
+            user_id,
+            total=len(targets),
+            variables=targets
+        )
+
+        for i, columna in enumerate(targets, start=1):
             try:
-                info, score = entrenar_una_columna(df, COLUMNAS_MODELO, columna)
+                info, score = entrenar_una_columna(
+                    df,
+                    features,
+                    columna
+                )
+
                 if info:
                     modelos[columna] = info
                     scores[columna] = score
+
                 tiempo_actual = round(time.time() - inicio, 1)
+
                 _set_estado_entrenamiento(
-                    user_id, progreso=i, columna=columna, tiempo=tiempo_actual,
+                    user_id,
+                    progreso=i,
+                    columna=columna,
+                    tiempo=tiempo_actual,
                 )
+
             except Exception as e:
-                logger.exception("Error entrenando columna %s (usuario %s)", columna, user_id)
+                logger.exception(
+                    "Error entrenando columna %s (usuario %s)",
+                    columna,
+                    user_id
+                )
+
                 _set_estado_entrenamiento(
-                    user_id, corriendo=False, listo=False,
+                    user_id,
+                    corriendo=False,
+                    listo=False,
                     error=f"Error entrenando {columna}: {e}",
                 )
+
                 return
+
         if not modelos:
             _set_estado_entrenamiento(
-                user_id, corriendo=False, listo=False,
-                error="Ninguna variable seleccionada pudo entrenarse. Revisá que tenga datos suficientes en el dataset.",
+                user_id,
+                corriendo=False,
+                listo=False,
+                error=(
+                    "Ninguna variable seleccionada pudo entrenarse. "
+                    "Revisá que tenga datos suficientes en el dataset."
+                ),
             )
             return
+
         with _lock_global:
             _modelos[user_id] = modelos
+
         _guardar_modelo(user_id, modelos)
+
         tabla_r2 = [
             {"columna": k, "r2": v}
-            for k, v in sorted(scores.items(), key=lambda x: x[1] if x[1] is not None else -1, reverse=True)
+            for k, v in sorted(
+                scores.items(),
+                key=lambda x: x[1] if x[1] is not None else -1,
+                reverse=True
+            )
             if v is not None
         ]
+
         tiempo_final = round(time.time() - inicio, 2)
-        info_guardada = _guardar_info_modelo(user_id, tabla_r2, tiempo_final, variables_entrenadas=columnas_y)
+
+        info_guardada = _guardar_info_modelo(
+            user_id,
+            tabla_r2,
+            tiempo_final,
+            variables_entrenadas=targets
+        )
+
         _set_estado_entrenamiento(
             user_id,
-            corriendo=False, listo=True, error=None,
-            tabla_r2=tabla_r2, tiempo=tiempo_final,
-            fecha=info_guardada["fecha"], variables=columnas_y,
-            progreso=total,
+            corriendo=False,
+            listo=True,
+            error=None,
+            tabla_r2=tabla_r2,
+            tiempo=tiempo_final,
+            fecha=info_guardada["fecha"],
+            variables=targets,
+            progreso=len(targets),
         )
+
     except Exception as e:
-        logger.exception("Error general de entrenamiento (usuario %s)", user_id)
-        _set_estado_entrenamiento(user_id, corriendo=False, listo=False, error=str(e))
+        logger.exception(
+            "Error general de entrenamiento (usuario %s)",
+            user_id
+        )
+
+        _set_estado_entrenamiento(
+            user_id,
+            corriendo=False,
+            listo=False,
+            error=str(e)
+        )
+
     finally:
         lock.release()
 
 
 def predecir_service(mix, temperatura):
     user_id = obtener_usuario()
+
     if _modelos[user_id] is None:
         cargar_modelo()
+
     if _modelos[user_id] is None:
         raise ValueError("Primero entrená el modelo")
+
     valido, total = validar_mezcla_100(mix)
+
     if not valido:
         raise ValueError(f"La mezcla debe sumar 100% (actual {total}%)")
+
     valido, temperatura = validar_temperatura(temperatura)
+
     if not valido:
         raise ValueError("Temperatura inválida")
-    valores = {c: 0 for c in COLUMNAS}
+
+    # Juntar todas las features que conocen los modelos entrenados.
+    features = set()
+
+    for info in _modelos[user_id].values():
+        features.update(info.get("features", []))
+
+    valores = {}
+
+    # Composición: inicializar en 0 todas las columnas *_pct conocidas.
+    for feature in features:
+        if str(feature).lower().endswith("_pct"):
+            valores[feature] = 0.0
+
+    # Cargar la mezcla enviada.
     for e in mix:
-        col = e["elemento"] + "_pct"
+        elemento = e.get("elemento", "")
+        pct = e.get("pct", 0)
+
+        col = f"{elemento}_pct"
+
         if col in valores:
-            valores[col] = e["pct"]
-    valores["Temperatura_C"] = temperatura
+            valores[col] = float(pct)
+
+    # Cargar temperatura en todas las features que sean temperatura.
+    for feature in features:
+        if es_columna_temperatura(feature):
+            valores[feature] = float(temperatura)
+
     resultado = []
+
     for nombre, info in _modelos[user_id].items():
         modelo = info["modelo"]
-        vector = [valores.get(f, 0) for f in info["features"]]
+
+        vector = [
+            valores.get(f, 0)
+            for f in info["features"]
+        ]
+
         pred = modelo.predict([vector])[0]
-        if info["log"]:
+
+        if info.get("log"):
             pred = np.expm1(pred)
-        resultado.append({"columna": nombre, "prediccion": round(float(pred), 4)})
+
+        resultado.append({
+            "columna": nombre,
+            "prediccion": round(float(pred), 4)
+        })
+
     return sorted(resultado, key=lambda x: x["columna"])
 
 
@@ -235,23 +394,29 @@ def guardar_ultima_prediccion(mix, temperatura, tabla_prediccion):
         "tabla_prediccion": tabla_prediccion,
         "fecha": datetime.now().isoformat(timespec="seconds"),
     }
+
     with open(archivo_ultima_prediccion_usuario(), "w", encoding="utf-8") as f:
         json.dump(datos, f, ensure_ascii=False)
+
     return datos
 
 
 def obtener_ultima_prediccion():
     archivo = archivo_ultima_prediccion_usuario()
+
     if not os.path.exists(archivo):
         return None
+
     with open(archivo, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def estado_service():
     user_id = obtener_usuario()
+
     if _modelos[user_id] is None:
         cargar_modelo()
+
     try:
         df = cargar_dataset()
         dataset_ok = True
@@ -262,6 +427,7 @@ def estado_service():
         dataset_ok = False
         filas = 0
         columnas = 0
+
     return {
         "usuario": user_id,
         "dataset_cargado": dataset_ok,
@@ -274,21 +440,29 @@ def estado_service():
 
 def info_modelo_service():
     archivo = archivo_info_usuario()
+
     if not os.path.exists(archivo):
         return {"entrenado": False}
+
     with open(archivo, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def reset_modelo_service():
     user_id = obtener_usuario()
+
     with _lock_global:
         _modelos[user_id] = None
+
     ruta = archivo_modelo_usuario()
+
     if os.path.exists(ruta):
         os.remove(ruta)
+
     ruta_info = archivo_info_usuario()
+
     if os.path.exists(ruta_info):
         os.remove(ruta_info)
+
     with _lock_estado:
         _estado_entrenamiento.pop(user_id, None)

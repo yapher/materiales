@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -16,6 +17,53 @@ def _ensure_dir(path):
         # El error real aparecerá cuando la app intente escribir.
         pass
     return path
+
+
+# ==========================================================
+# Directorio de datos
+#
+# En desarrollo local puede ser ./data.
+# En Render con disco persistente puede ser /opt/data.
+# ==========================================================
+_DATA_DIR = os.environ.get(
+    "DATA_DIR",
+    os.path.join(BASE_DIR, "data")
+)
+
+_ensure_dir(_DATA_DIR)
+
+
+# ==========================================================
+# Dataset maestro
+#
+# Si el administrador sube un nuevo dataset desde el panel,
+# se guarda como:
+#   DATA_DIR/dataset_maestro_actual.xlsx
+#
+# Si ese archivo existe, se usa como dataset maestro activo.
+# Si no existe, se usa la plantilla original o la variable
+# de entorno ARCHIVO_DATASET.
+# ==========================================================
+_ARCHIVO_DATASET_SUBIDO = os.path.join(
+    _DATA_DIR,
+    "dataset_maestro_actual.xlsx"
+)
+
+_ARCHIVO_DATASET_DEFAULT = os.path.join(
+    BASE_DIR,
+    "data",
+    "Plantilla_Base_Polvos_Coladores_con_ML_Dataset (version 1).xlsx"
+)
+
+# Si ya hay un dataset subido, se prioriza ese.
+_ARCHIVO_DATASET = (
+    _ARCHIVO_DATASET_SUBIDO
+    if os.path.exists(_ARCHIVO_DATASET_SUBIDO)
+    else os.environ.get(
+        "ARCHIVO_DATASET",
+        _ARCHIVO_DATASET_DEFAULT
+    )
+)
 
 
 class Config:
@@ -55,31 +103,15 @@ class Config:
 
     # ==========================================================
     # Directorio de datos
-    #
-    # En desarrollo local puede ser ./data.
-    # En Render con disco persistente puede ser /opt/data.
     # ==========================================================
-    DATA_DIR = os.environ.get(
-        "DATA_DIR",
-        os.path.join(BASE_DIR, "data")
-    )
-
-    _ensure_dir(DATA_DIR)
+    DATA_DIR = _DATA_DIR
 
     # ==========================================================
     # Dataset maestro
-    #
-    # La plantilla base sigue dentro del repositorio/code.
-    # Los datos de usuarios van en DATA_DIR.
     # ==========================================================
-    ARCHIVO_DATASET = os.environ.get(
-        "ARCHIVO_DATASET",
-        os.path.join(
-            BASE_DIR,
-            "data",
-            "Plantilla_Base_Polvos_Coladores_con_ML_Dataset (version 1).xlsx"
-        )
-    )
+    ARCHIVO_DATASET_SUBIDO = _ARCHIVO_DATASET_SUBIDO
+    ARCHIVO_DATASET_DEFAULT = _ARCHIVO_DATASET_DEFAULT
+    ARCHIVO_DATASET = _ARCHIVO_DATASET
 
     HOJA_DATASET = os.environ.get("HOJA_DATASET", "ML_Dataset")
 
@@ -87,6 +119,7 @@ class Config:
     # Modelos
     # ==========================================================
     MODELOS_DIR = _ensure_dir(os.path.join(DATA_DIR, "modelos"))
+
     MODELO_GLOBAL = os.path.join(
         MODELOS_DIR,
         "modelo_global.pkl"

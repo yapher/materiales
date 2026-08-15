@@ -1,3 +1,5 @@
+import logging
+
 from flask import (
     Blueprint,
     render_template,
@@ -13,12 +15,15 @@ from services.excel_service import (
     eliminar_fila_usuario,
     obtener_fila_usuario,
     actualizar_fila_usuario,
+    obtener_esquema_dataset,
 )
 
-from services.pdf_service import generar_pdf_prediccion, generar_pdf_fila_dataset
+from services.pdf_service import (
+    generar_pdf_prediccion,
+    generar_pdf_fila_dataset,
+)
 
 from services.mezcla_service import (
-    ELEMENTOS,
     iniciar_entrenamiento,
     obtener_estado_entrenamiento,
     predecir_service,
@@ -27,13 +32,14 @@ from services.mezcla_service import (
     obtener_ultima_prediccion,
 )
 
-from services.constants import (
-    VARIABLES_ENTRENABLES,
-    VARIABLE_ENTRENABLE_POR_DEFECTO,
+from utils import (
+    manejar_errores_json,
+    login_required,
+    login_required_json,
+    usuario_actual,
 )
 
-from utils import manejar_errores_json, login_required, login_required_json, usuario_actual
-
+logger = logging.getLogger(__name__)
 
 mezclas_bp = Blueprint("mezclas", __name__)
 
@@ -41,11 +47,31 @@ mezclas_bp = Blueprint("mezclas", __name__)
 @mezclas_bp.route("/mezclas")
 @login_required
 def index():
+    """
+    Página principal de predicción.
+
+    El esquema de columnas se detecta dinámicamente desde el dataset
+    del usuario.
+    """
+    try:
+        esquema = obtener_esquema_dataset()
+    except Exception:
+        logger.exception("No se pudo detectar el esquema del dataset")
+        esquema = {
+            "elementos": [],
+            "temperatura_column": None,
+            "temperatura_etiqueta": "Temperatura",
+            "variables_entrenables": [],
+            "variable_entrenable_default": None,
+        }
+
     return render_template(
         "index.html",
-        elementos=ELEMENTOS,
-        variables_entrenables=VARIABLES_ENTRENABLES,
-        variable_entrenable_default=VARIABLE_ENTRENABLE_POR_DEFECTO,
+        elementos=esquema.get("elementos", []),
+        temperatura_column=esquema.get("temperatura_column"),
+        temperatura_etiqueta=esquema.get("temperatura_etiqueta", "Temperatura"),
+        variables_entrenables=esquema.get("variables_entrenables", []),
+        variable_entrenable_default=esquema.get("variable_entrenable_default"),
     )
 
 
@@ -54,6 +80,7 @@ def index():
 @manejar_errores_json
 def cargar_dataset():
     info = cargar_excel_service()
+
     return jsonify({
         "filas": info["filas"],
         "columnas": info["columnas"],
@@ -66,6 +93,7 @@ def cargar_dataset():
 @manejar_errores_json
 def entrenar():
     data = request.get_json(silent=True) or {}
+
     variables = data.get("variables")
 
     iniciado = iniciar_entrenamiento(targets=variables)
@@ -101,10 +129,14 @@ def estado():
 @manejar_errores_json
 def predecir():
     data = request.get_json()
+
     mix = data.get("mix", [])
     temperatura = data.get("temperatura")
+
     resultado = predecir_service(mix, temperatura)
+
     guardar_ultima_prediccion(mix, temperatura, resultado)
+
     return jsonify({"tabla_prediccion": resultado})
 
 
@@ -121,10 +153,18 @@ def ultima_prediccion():
 @manejar_errores_json
 def guardar_prediccion():
     data = request.get_json()
+
     mix = data.get("mix", [])
     temperatura = data.get("temperatura")
+
     tabla = predecir_service(mix, temperatura)
-    resultado = guardar_prediccion_en_dataset(mix, temperatura, tabla)
+
+    resultado = guardar_prediccion_en_dataset(
+        mix,
+        temperatura,
+        tabla
+    )
+
     return jsonify({
         "ok": True,
         "mensaje": (
@@ -139,14 +179,21 @@ def guardar_prediccion():
 @manejar_errores_json
 def predecir_pdf():
     data = request.get_json()
+
     mix = data.get("mix", [])
     temperatura = data.get("temperatura")
+
     tabla = predecir_service(mix, temperatura)
+
     usuario = usuario_actual()
+
     buffer = generar_pdf_prediccion(
-        mix, temperatura, tabla,
+        mix,
+        temperatura,
+        tabla,
         usuario=usuario["username"] if usuario else None,
     )
+
     return send_file(
         buffer,
         mimetype="application/pdf",
@@ -173,7 +220,9 @@ def dataset_filas():
 @manejar_errores_json
 def dataset_editar_fila(indice):
     valores = request.get_json() or {}
+
     actualizar_fila_usuario(indice, valores)
+
     return jsonify({"ok": True, "mensaje": "Fila actualizada"})
 
 
@@ -182,9 +231,13 @@ def dataset_editar_fila(indice):
 @manejar_errores_json
 def dataset_borrar_fila(indice):
     eliminar_fila_usuario(indice)
+
     return jsonify({
         "ok": True,
-        "mensaje": "Fila eliminada de tu dataset. Reentrená el modelo si ya lo habías entrenado con ella.",
+        "mensaje": (
+            "Fila eliminada de tu dataset. "
+            "Reentrená el modelo si ya lo habías entrenado con ella."
+        ),
     })
 
 
@@ -193,7 +246,9 @@ def dataset_borrar_fila(indice):
 @manejar_errores_json
 def dataset_fila_pdf(indice):
     columnas, fila = obtener_fila_usuario(indice)
+
     usuario = usuario_actual()
+
     buffer = generar_pdf_fila_dataset(
         "Fila de mi dataset",
         indice,
@@ -203,6 +258,7 @@ def dataset_fila_pdf(indice):
         motivo=fila["motivo"],
         generado_para=usuario["username"] if usuario else None,
     )
+
     return send_file(
         buffer,
         mimetype="application/pdf",
