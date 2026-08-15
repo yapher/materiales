@@ -1,0 +1,283 @@
+/* ==========================================================
+   grafico_tarta.css
+   Estilos del gráfico de tarta 3D de la composición
+   (la lógica está en static/js/grafico_tarta.js).
+   ========================================================== */
+
+.grafico-tarta-panel {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 72% 18%, rgba(107, 79, 160, 0.12), transparent 46%),
+    radial-gradient(circle at 18% 88%, rgba(136, 201, 153, 0.09), transparent 42%),
+    rgba(20, 16, 31, 0.55);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.95rem;
+  padding: 1rem 1rem 0.65rem;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grafico-tarta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.grafico-tarta-titulo {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+}
+
+.grafico-tarta-titulo i {
+  color: var(--accent);
+  margin-right: 0.3rem;
+}
+
+.grafico-tarta-estado {
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-family: Consolas, 'Courier New', monospace;
+  color: var(--accent);
+  background: rgba(136, 201, 153, 0.10);
+  border: 1px solid rgba(136, 201, 153, 0.32);
+  border-radius: 999px;
+  padding: 0.16rem 0.65rem;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.grafico-tarta-estado.estado-completo {
+  color: #14101f;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 18px rgba(136, 201, 153, 0.45);
+}
+
+.grafico-tarta-estado.estado-excedido {
+  color: #fff;
+  background: #e07f7f;
+  border-color: #e07f7f;
+  box-shadow: 0 0 18px rgba(224, 127, 127, 0.45);
+}
+
+.grafico-tarta {
+  position: relative;
+  width: 100%;
+}
+
+.grafico-tarta svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* ---------- Sombra bajo la tarta ---------- */
+
+.tarta-sombra {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.grafico-tarta-con-datos .tarta-sombra {
+  opacity: 1;
+}
+
+/* ---------- Porciones ---------- */
+
+.tarta-slice {
+  cursor: pointer;
+  transition:
+    transform 0.22s cubic-bezier(0.22, 0.9, 0.35, 1.35),
+    filter 0.22s ease;
+  will-change: transform;
+}
+
+.tarta-slice-activa {
+  filter: brightness(1.13) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+}
+
+.tarta-tapa {
+  stroke: #14101f;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.tarta-pared {
+  stroke: rgba(20, 16, 31, 0.5);
+  stroke-width: 0.8;
+}
+
+.tarta-restante {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.tarta-restante .tarta-tapa {
+  stroke: rgba(255, 255, 255, 0.10);
+  stroke-width: 1;
+}
+
+.tarta-etiqueta {
+  fill: #14101f;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: 'Inter', sans-serif;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 2.2px;
+}
+
+/* ---------- Estado vacío ---------- */
+
+.grafico-tarta-vacio {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.grafico-tarta-vacio i {
+  font-size: 2.6rem;
+  opacity: 0.35;
+  animation: graficoTartaVacioPulso 2.8s ease-in-out infinite;
+}
+
+.grafico-tarta-vacio p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+@keyframes graficoTartaVacioPulso {
+  0%, 100% { transform: translateY(0); opacity: 0.30; }
+  50%      { transform: translateY(-5px); opacity: 0.55; }
+}
+
+/* ---------- Tooltip ---------- */
+
+.grafico-tarta-tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.7rem;
+  border-radius: 0.7rem;
+  background: rgba(30, 23, 48, 0.94);
+  border: 1px solid rgba(136, 201, 153, 0.35);
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.45),
+    0 0 20px rgba(136, 201, 153, 0.12);
+  backdrop-filter: blur(8px);
+  color: var(--text);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, calc(-100% - 12px)) scale(0.92);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.grafico-tarta-tooltip.tooltip-visible {
+  opacity: 1;
+  transform: translate(-50%, calc(-100% - 12px)) scale(1);
+}
+
+.grafico-tarta-tooltip-chip {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.28);
+}
+
+.grafico-tarta-tooltip-pct {
+  font-weight: 800;
+  font-family: Consolas, monospace;
+  color: var(--accent);
+}
+
+/* ---------- Estados: completo / excedido ---------- */
+
+.grafico-tarta-panel.grafico-completo {
+  border-color: rgba(136, 201, 153, 0.6);
+  animation: graficoTartaCompletado 1.4s ease 1;
+}
+
+.grafico-tarta-panel.grafico-excedido {
+  border-color: rgba(224, 127, 127, 0.65);
+}
+
+@keyframes graficoTartaCompletado {
+  0%   { box-shadow: 0 0 0 0 rgba(136, 201, 153, 0.4); }
+  100% { box-shadow: 0 0 0 22px rgba(136, 201, 153, 0); }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 991.98px) {
+  .grafico-tarta-panel {
+    margin-top: 0.75rem;
+  }
+  .grafico-tarta svg {
+    max-width: 430px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .grafico-tarta-panel {
+    padding: 0.85rem 0.75rem 0.5rem;
+  }
+  .grafico-tarta-titulo {
+    font-size: 0.7rem;
+  }
+  .grafico-tarta-estado {
+    font-size: 0.72rem;
+  }
+  .tarta-etiqueta {
+    font-size: 10.5px;
+  }
+  .grafico-tarta-vacio i {
+    font-size: 2.1rem;
+  }
+}
+
+/* ---------- Accesibilidad: reducir movimiento ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .tarta-slice,
+  .grafico-tarta-tooltip,
+  .grafico-tarta-panel,
+  .tarta-sombra,
+  .grafico-tarta-estado {
+    transition: none !important;
+  }
+  .grafico-tarta-vacio i {
+    animation: none;
+  }
+  .grafico-tarta-panel.grafico-completo {
+    animation: none;
+  }
+}

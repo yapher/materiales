@@ -19,7 +19,6 @@ const COLORES_ELEMENTO = {
 function confirmarModerno(mensaje, titulo = 'Confirmar') {
     return new Promise(resolve => {
         const modalEl = document.getElementById('modalConfirmar');
-
         if (!modalEl || typeof bootstrap === 'undefined') {
             resolve(window.confirm(mensaje));
             return;
@@ -30,7 +29,6 @@ function confirmarModerno(mensaje, titulo = 'Confirmar') {
 
         const modal = new bootstrap.Modal(modalEl);
         const btnOk = document.getElementById('confirmarBotonOk');
-
         let resuelto = false;
 
         const limpiar = () => {
@@ -66,7 +64,6 @@ function mostrarToast(titulo, mensaje, esError = false) {
     const div = document.createElement('div');
     div.className = `toast ${clase}`;
     div.setAttribute('role', 'alert');
-
     div.innerHTML = `
         <div class="toast-header">
             <i class="bi ${icono} me-2"></i>
@@ -88,7 +85,6 @@ function notificarWorkflow() {
     if (window.FlujoModelo && typeof window.FlujoModelo.actualizar === 'function') {
         window.FlujoModelo.actualizar();
     }
-
     document.dispatchEvent(new CustomEvent('mezclas:estado-actualizado'));
 }
 
@@ -112,15 +108,12 @@ function actualizarMix() {
 
     mix.forEach(e => {
         const color = COLORES_ELEMENTO[e.elemento] || '#88c999';
-
         const div = document.createElement('div');
         div.className = 'mix-tag';
-
         div.innerHTML = `
             <div class="elemento-chip" style="background:${color}">${e.elemento}</div>
             <span class="mix-tag-pct">${formatearPorcentaje(e.pct)}%</span>
             <button onclick="eliminarElemento('${e.elemento}')">✕</button>`;
-
         cont.appendChild(div);
     });
 
@@ -135,9 +128,7 @@ function actualizarMix() {
     const barEl = document.getElementById('mixBar');
     if (barEl) {
         barEl.style.width = `${porcentajeMostrar}%`;
-
         barEl.classList.remove('progreso-incompleto', 'progreso-excedido', 'progreso-completo');
-
         if (total > 100.001) {
             barEl.classList.add('progreso-excedido');
         } else if (Math.abs(total - 100) < 0.001) {
@@ -148,12 +139,16 @@ function actualizarMix() {
     }
 
     actualizarVisibilidadPredecir();
+
+    // NUEVO: actualizar el gráfico de tarta 3D en tiempo real.
+    if (window.GraficoTarta && typeof window.GraficoTarta.actualizar === 'function') {
+        window.GraficoTarta.actualizar(mix);
+    }
 }
 
 function setMensaje(texto) {
     const box = document.getElementById('mensajeBox');
     if (!box) return;
-
     document.getElementById('mensaje').textContent = texto;
     box.style.display = texto ? 'block' : 'none';
 }
@@ -175,7 +170,6 @@ function setOcupado(ocupado) {
     const datasetOk = (window.FlujoModelo && typeof window.FlujoModelo.isDatasetListo === 'function')
         ? window.FlujoModelo.isDatasetListo()
         : true;
-
     const entrenamientoCorriendo = (window.FlujoModelo && typeof window.FlujoModelo.isEntrenamientoCorriendo === 'function')
         ? window.FlujoModelo.isEntrenamientoCorriendo()
         : false;
@@ -197,7 +191,6 @@ function agregarElemento() {
     if (mix.some(e => e.elemento === elemento)) return setMensaje('Elemento ya agregado');
 
     const total = calcularTotalMezcla();
-
     if (total + pct > 100.001) {
         return setMensaje(`No puede superar 100% (actual: ${formatearPorcentaje(total)}%)`);
     }
@@ -225,7 +218,6 @@ function eliminarElemento(elemento) {
 
     actualizarMix();
     setOcupado(false);
-
     setMensaje('Mezcla modificada. Ajustá el 100% y volvé a predecir.');
 }
 
@@ -233,7 +225,6 @@ let pollEntrenamiento = null;
 
 function iniciarPollEntrenamiento() {
     if (pollEntrenamiento) return;
-
     consultarEstadoEntrenamiento();
     pollEntrenamiento = setInterval(consultarEstadoEntrenamiento, 1200);
 }
@@ -241,9 +232,7 @@ function iniciarPollEntrenamiento() {
 function actualizarBarraProgreso(actual, total) {
     const barra = document.getElementById('barraProgreso');
     if (!barra) return;
-
     const pct = total > 0 ? Math.round((actual / total) * 100) : 0;
-
     barra.style.width = `${pct}%`;
     barra.textContent = `${pct}%`;
 }
@@ -310,7 +299,6 @@ function consultarEstadoEntrenamiento() {
                 const yaVisto = localStorage.getItem('entrenamiento_visto') === data.fecha;
 
                 modeloListo = true;
-
                 actualizarVisibilidadPredecir();
                 setOcupado(false);
 
@@ -331,7 +319,6 @@ function consultarEstadoEntrenamiento() {
         })
         .catch(() => {});
 }
-
 
 function predecir() {
     const temperatura = document.getElementById('temperatura').value;
@@ -354,10 +341,8 @@ function predecir() {
         .then(r => r.json())
         .then(data => {
             if (data.error) throw new Error(data.error);
-
             datosPrediccion = data.tabla_prediccion;
             ultimaMezcla = { mix: JSON.parse(JSON.stringify(mix)), temperatura };
-
             renderTablaPrediccion();
             setMensaje('Predicción calculada');
         })
@@ -369,27 +354,22 @@ async function exportarPrediccionPDF() {
     if (!ultimaMezcla) return;
 
     setMensaje('Generando PDF...');
-
     try {
         const r = await fetch('/mezclas/predecir/pdf', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ultimaMezcla),
         });
-
         if (!r.ok) throw new Error('No se pudo generar el PDF');
 
         const blob = await r.blob();
         const url = URL.createObjectURL(blob);
-
         const a = document.createElement('a');
         a.href = url;
         a.download = 'prediccion_mezcla.pdf';
-
         document.body.appendChild(a);
         a.click();
         a.remove();
-
         URL.revokeObjectURL(url);
 
         setMensaje('PDF descargado');
@@ -405,7 +385,6 @@ async function guardarPrediccionDataset() {
         '¿Agregar esta predicción como una fila nueva a tu dataset?',
         'Guardar predicción'
     );
-
     if (!confirmado) return;
 
     setMensaje('Guardando en el dataset...');
@@ -418,7 +397,6 @@ async function guardarPrediccionDataset() {
         .then(r => r.json())
         .then(data => {
             if (data.error) throw new Error(data.error);
-
             mostrarToast('Guardado', data.mensaje);
             setMensaje(data.mensaje);
         })
@@ -438,7 +416,6 @@ function claseR2(valor) {
 function renderTablaR2() {
     const tbody = document.getElementById('tablaR2');
     const vacio = document.getElementById('r2Vacio');
-
     if (!tbody) return;
 
     if (datosR2.length === 0) {
@@ -453,7 +430,6 @@ function renderTablaR2() {
     tbody.innerHTML = datosR2.map(row => {
         const clase = claseR2(row.r2);
         const pct = Math.max(0, Math.min(100, row.r2 * 100));
-
         return `
             <tr>
                 <td><span class="var-nombre">${row.columna}</span></td>
@@ -475,15 +451,12 @@ function renderTablaPrediccion() {
     const tbody = document.getElementById('tablaPrediccion');
     const vacio = document.getElementById('prediccionVacia');
     const acciones = document.getElementById('accionesPrediccion');
-
     if (!tbody) return;
 
     if (datosPrediccion.length === 0) {
         tbody.innerHTML = '';
-
         if (vacio) vacio.style.display = 'block';
         if (acciones) acciones.style.display = 'none';
-
         notificarWorkflow();
         return;
     }
@@ -503,20 +476,16 @@ function renderTablaPrediccion() {
 function ordenarTabla(tabla, campo) {
     const key = `${tabla}_${campo}`;
     const direccion = ordenEstado[key] === 'asc' ? 'desc' : 'asc';
-
     ordenEstado[key] = direccion;
 
     const datos = tabla === 'r2' ? datosR2 : datosPrediccion;
-
     datos.sort((a, b) => {
         let valA = a[campo], valB = b[campo];
-
         if (typeof valA === 'string') {
             return direccion === 'asc'
                 ? valA.localeCompare(valB)
                 : valB.localeCompare(valA);
         }
-
         return direccion === 'asc' ? valA - valB : valB - valA;
     });
 
@@ -586,5 +555,10 @@ window.MezclasApp = {
     },
     hayPrediccion() {
         return datosPrediccion.length > 0;
-    }
+    },
+    // NUEVO: expuestos para el gráfico de tarta 3D (grafico_tarta.js)
+    getMix() {
+        return JSON.parse(JSON.stringify(mix));
+    },
+    colores: COLORES_ELEMENTO,
 };
