@@ -1,9 +1,6 @@
 /* ==========================================================
    mobile.css
    Ajustes responsive/mobile para todas las vistas.
-   Se carga después de mezclas.css para pisar estilos solo
-   en pantallas chicas o táctiles.
-   No modifica la lógica de la aplicación.
    ========================================================== */
 
 :root {
@@ -24,7 +21,6 @@ svg {
   height: auto;
 }
 
-/* Mejora táctil general */
 button,
 .btn,
 .form-control,
@@ -32,84 +28,49 @@ button,
   touch-action: manipulation;
 }
 
-/* Tablas: scroll táctil más suave */
 .table-responsive {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 
-/* Toasts y modales deben quedar por encima */
 .toast-container {
   z-index: 1080;
 }
 
-.modal-content {
-  background: var(--panel);
-}
-
-/* Badge de entrenamiento en navbar */
-.badge-entrenando {
-  margin: .35rem 0;
-}
-
 /* ==========================================================
-   TABLETS / NAVBAR COLLAPSE
+   Navbar / tablet
    ========================================================== */
 
 @media (max-width: 991.98px) {
-
-  .navbar .container {
-    padding-left: .75rem;
-    padding-right: .75rem;
-  }
-
-  .navbar-brand {
-    font-size: 1.05rem !important;
-    white-space: normal;
-  }
 
   .navbar-collapse {
     max-height: calc(100vh - 72px);
     overflow-y: auto;
   }
 
-  .navbar-nav {
-    gap: .2rem;
-    padding-bottom: .5rem;
-  }
-
   .navbar .nav-link {
-    padding: .7rem .75rem !important;
+    padding: 0.7rem 0.75rem !important;
   }
 
   .navbar-toggler {
-    padding: .45rem .55rem;
     min-width: 44px;
     min-height: 44px;
-  }
-
-  .navbar .nav-link.text-muted {
-    white-space: normal;
   }
 }
 
 /* ==========================================================
-   MOBILE
+   Mobile
    ========================================================== */
 
 @media (max-width: 767.98px) {
 
   body {
-    font-size: .98rem;
+    font-size: 0.98rem;
   }
 
   .container {
-    padding-left: max(.75rem, env(safe-area-inset-left));
-    padding-right: max(.75rem, env(safe-area-inset-right));
-  }
-
-  .card.panel {
-    border-radius: .85rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
   }
 
   .card-body {
@@ -122,11 +83,11 @@ button,
   }
 
   .subtitulo {
-    font-size: .95rem;
+    font-size: 0.95rem;
   }
 
   .panel-titulo {
-    margin-bottom: .9rem;
+    margin-bottom: 0.9rem;
     font-size: 1.05rem;
   }
 
@@ -134,45 +95,23 @@ button,
     font-size: 1.25rem;
   }
 
-  /* ----------------------------------------------------------
-     Formularios
-     ---------------------------------------------------------- */
-
-  .form-label,
-  label {
-    margin-bottom: .35rem;
-  }
-
   .form-control,
   .form-select {
     min-height: 46px;
-    border-radius: .55rem;
-    font-size: 16px; /* Evita zoom automático en iOS */
+    font-size: 16px;
+    border-radius: 0.55rem;
   }
 
   .form-control-sm {
     min-height: 40px;
   }
 
-  /* ----------------------------------------------------------
-     Botones
-     ---------------------------------------------------------- */
-
-  .btn {
-    border-radius: .65rem;
-  }
-
   .btn-accion,
   .btn-agregar {
-    padding: .7rem 1rem;
+    padding: 0.7rem 1rem;
   }
 
-  .btn-sm {
-    padding: .5rem .75rem;
-  }
-
-  /* Botones principales en barras de acción ocupan todo el ancho.
-     Ejemplo: Entrenar Modelo, Predecir, Ver mi dataset, Actualizar. */
+  /* Botones principales en ancho completo en barras de acción */
   .d-flex.flex-wrap.gap-2 > .btn,
   .d-flex.flex-wrap.gap-2 > a.btn,
   .d-flex.flex-wrap.gap-2 > button.btn {
@@ -180,7 +119,7 @@ button,
     width: 100%;
   }
 
-  /* Los iconos pequeños de tabla NO deben ocupar ancho completo */
+  /* Iconos pequeños de tabla no deben ocupar ancho completo */
   .d-flex.gap-1 > .btn-fila-accion,
   .d-flex.gap-1 > a.btn-fila-accion,
   .d-flex.gap-1 > button.btn-fila-accion {
@@ -189,95 +128,28 @@ button,
     height: 40px;
   }
 
-  .btn-close {
-    min-width: 32px;
-    min-height: 32px;
-  }
-
-  /* ----------------------------------------------------------
-     Tablas
-     ---------------------------------------------------------- */
-
-  .table-responsive {
-    border-radius: .75rem;
-  }
-
   .tabla-moderna {
-    font-size: .84rem;
-    margin-bottom: 0;
-  }
-
-  .tabla-moderna thead {
-    font-size: .68rem;
+    font-size: 0.84rem;
   }
 
   .tabla-moderna th,
   .tabla-moderna td {
-    padding: .55rem .5rem;
+    padding: 0.55rem 0.5rem;
     vertical-align: middle;
   }
 
-  .tabla-moderna td .form-control-sm {
-    min-width: 82px;
-  }
-
-  .tabla-fija-header thead th {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-  }
-
-  /* Las tablas de dataset usan inline style max-height:70vh.
-     En mobile la bajamos un poco para mejorar la visualización. */
   .table-responsive[style*="max-height:70vh"] {
     max-height: 62vh !important;
   }
 
-  #tablaDataset input.form-control-sm,
-  #tablaMiDataset input.form-control-sm {
-    min-width: 82px;
-  }
-
-  /* Permitir que las celdas de acciones no fuerzan overflow raro */
   .text-nowrap {
     white-space: normal !important;
   }
 
-  /* ----------------------------------------------------------
-     Mezcla / tags / progreso
-     ---------------------------------------------------------- */
-
-  .mix-tag {
-    padding: .45rem .6rem;
-    font-size: .9rem;
-  }
-
-  .elemento-chip {
-    width: 30px;
-    height: 30px;
-    font-size: .78rem;
-  }
-
-  .progreso-entrenamiento {
-    height: 32px;
-  }
-
-  .progreso-entrenamiento-bar {
-    font-size: .72rem;
-  }
-
-  .pred-valor {
-    font-size: .95rem;
-  }
-
-  /* ----------------------------------------------------------
-     Toasts
-     ---------------------------------------------------------- */
-
   .toast-container {
-    left: .75rem !important;
-    right: .75rem !important;
-    bottom: calc(.75rem + env(safe-area-inset-bottom)) !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom)) !important;
     width: auto !important;
   }
 
@@ -286,22 +158,14 @@ button,
     max-width: 100%;
   }
 
-  /* ----------------------------------------------------------
-     Modales
-     ---------------------------------------------------------- */
-
   .modal-dialog {
-    margin: .5rem;
+    margin: 0.5rem;
   }
 
   .modal-content {
     max-height: calc(100vh - 1rem);
     max-height: calc(100dvh - 1rem);
     overflow-y: auto;
-  }
-
-  .modal-body {
-    padding: 1rem;
   }
 
   .modal-footer {
@@ -312,35 +176,7 @@ button,
     flex: 1 1 100%;
   }
 
-  /* ----------------------------------------------------------
-     Ayuda / documentos
-     ---------------------------------------------------------- */
-
-  .seccion-doc .card-body {
-    padding: 1rem;
-  }
-
-  .seccion-doc pre {
-    font-size: .75rem;
-    padding: .75rem !important;
-  }
-
-  .figura-doc {
-    padding: .6rem;
-  }
-
-  .figura-doc img {
-    width: 100%;
-  }
-
-  .bloque-referencias {
-    font-size: .84rem;
-  }
-
-  /* ----------------------------------------------------------
-     Inicio / desarrolladora
-     ---------------------------------------------------------- */
-
+  /* Inicio: desarrolladora centrada en mobile */
   .card .row.align-items-center .col-md-3 {
     display: flex;
     justify-content: center;
@@ -355,26 +191,6 @@ button,
     justify-content: center;
   }
 
-  .avatar-desarrolladora {
-    width: 96px;
-    height: 96px;
-    font-size: 1.9rem;
-  }
-
-  /* ----------------------------------------------------------
-     Badges / mensajes
-     ---------------------------------------------------------- */
-
-  .badge-admin {
-    display: inline-block;
-    margin-left: .25rem;
-  }
-
-  .mensaje-box {
-    padding: .7rem .8rem;
-    font-size: .9rem;
-  }
-
   /* Evitar desbordes de textos largos */
   .panel,
   .card,
@@ -387,31 +203,7 @@ button,
 }
 
 /* ==========================================================
-   PANTALLAS MUY CHICAS
-   ========================================================== */
-
-@media (max-width: 359.98px) {
-
-  .titulo-app {
-    font-size: 1.45rem;
-  }
-
-  .card-body {
-    padding: .8rem;
-  }
-
-  .tabla-moderna {
-    font-size: .8rem;
-  }
-
-  .btn-fila-accion {
-    width: 36px;
-    height: 36px;
-  }
-}
-
-/* ==========================================================
-   DISPOSITIVOS TÁCTILES
+   Dispositivos táctiles
    ========================================================== */
 
 @media (pointer: coarse) {

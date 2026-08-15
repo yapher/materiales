@@ -1,0 +1,429 @@
+/* ==========================================================
+   futuro.css
+   Efecto futurista sutil: profundidad 3D, glow, glass y
+   botones flotantes.
+   Mantiene la paleta actual del proyecto.
+   ========================================================== */
+
+:root {
+  --glow-accent: rgba(136, 201, 153, 0.22);
+  --glow-violet: rgba(107, 79, 160, 0.24);
+  --glass-panel: rgba(30, 23, 48, 0.82);
+  --glass-border: rgba(136, 201, 153, 0.16);
+  --glass-border-strong: rgba(136, 201, 153, 0.28);
+  --shadow-3d: 0 16px 40px rgba(0, 0, 0, 0.34);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fondo con leve grid tecnológico y luces suaves */
+body {
+  background:
+    radial-gradient(circle at 15% 18%, rgba(136, 201, 153, 0.075), transparent 34%),
+    radial-gradient(circle at 82% 22%, rgba(107, 79, 160, 0.09), transparent 42%),
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    radial-gradient(circle at top, #241a3d, #14101f 60%);
+  background-size: auto, auto, 44px 44px, 44px 44px, auto;
+  background-attachment: fixed;
+}
+
+/* ==========================================================
+   Paneles con profundidad
+   ========================================================== */
+
+.panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(30, 23, 48, 0.94));
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 12px 32px rgba(0, 0, 0, 0.30),
+    0 0 28px rgba(107, 79, 160, 0.06);
+  backdrop-filter: blur(8px);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.card.panel {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.card.panel:hover {
+  transform: translateY(-2px);
+  border-color: var(--glass-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 18px 46px rgba(0, 0, 0, 0.36),
+    0 0 34px rgba(136, 201, 153, 0.08);
+}
+
+.navbar.panel {
+  background: rgba(30, 23, 48, 0.72);
+  border-bottom: 1px solid rgba(136, 201, 153, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(12px);
+}
+
+.titulo-app {
+  filter: drop-shadow(0 0 16px rgba(136, 201, 153, 0.14));
+}
+
+.subtitulo {
+  text-shadow: 0 0 18px rgba(156, 147, 184, 0.10);
+}
+
+.panel-titulo {
+  text-shadow: 0 0 16px rgba(136, 201, 153, 0.10);
+}
+
+/* ==========================================================
+   Botones flotantes / glow
+   ========================================================== */
+
+.btn {
+  position: relative;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.btn:hover:not(:disabled),
+.btn:focus-visible:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+}
+
+.btn-accion {
+  box-shadow:
+    0 10px 22px rgba(107, 79, 160, 0.18),
+    0 0 0 rgba(136, 201, 153, 0);
+}
+
+.btn-accion:hover:not(:disabled),
+.btn-accion:focus-visible:not(:disabled) {
+  box-shadow:
+    0 14px 30px rgba(107, 79, 160, 0.28),
+    0 0 26px rgba(136, 201, 153, 0.12);
+  filter: brightness(1.06);
+}
+
+.btn-agregar {
+  box-shadow:
+    0 10px 22px rgba(136, 201, 153, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.btn-agregar:hover:not(:disabled),
+.btn-agregar:focus-visible:not(:disabled) {
+  box-shadow:
+    0 14px 30px rgba(136, 201, 153, 0.22),
+    0 0 26px rgba(136, 201, 153, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  filter: brightness(1.03);
+}
+
+.btn:disabled {
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 0.45;
+}
+
+/* Animación suave de flotación solo en desktop */
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+
+  .btn-accion:not(:disabled),
+  .btn-agregar:not(:disabled),
+  .btn-red-social {
+    animation: flotarBoton 4.8s ease-in-out infinite;
+  }
+
+  .btn-accion:not(:disabled):nth-of-type(2n),
+  .btn-agregar:not(:disabled):nth-of-type(2n),
+  .btn-red-social:nth-of-type(2n) {
+    animation-delay: 0.65s;
+  }
+
+  .btn-accion:not(:disabled):hover,
+  .btn-accion:not(:disabled):focus-visible,
+  .btn-agregar:not(:disabled):hover,
+  .btn-agregar:not(:disabled):focus-visible,
+  .btn-red-social:hover,
+  .btn-red-social:focus-visible {
+    animation-play-state: paused;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes flotarBoton {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.5px);
+  }
+}
+
+/* ==========================================================
+   Navbar futurista suave
+   ========================================================== */
+
+.navbar .nav-link {
+  border-radius: 0.65rem;
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  background: rgba(136, 201, 153, 0.05);
+  box-shadow:
+    inset 0 0 0 1px rgba(136, 201, 153, 0.10),
+    0 0 20px rgba(136, 201, 153, 0.06);
+  transform: translateY(-1px);
+}
+
+.navbar-toggler {
+  box-shadow: 0 0 0 1px rgba(136, 201, 153, 0.12);
+}
+
+/* ==========================================================
+   Formularios con glow suave
+   ========================================================== */
+
+.form-control,
+.form-select {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  box-shadow:
+    0 0 0 0.2rem rgba(136, 201, 153, 0.12),
+    0 0 26px rgba(136, 201, 153, 0.08);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================
+   Chips de mezcla / elementos
+   ========================================================== */
+
+.mix-tag {
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.mix-tag:hover {
+  transform: translateY(-2px);
+  border-color: rgba(136, 201, 153, 0.24);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.20),
+    0 0 24px rgba(136, 201, 153, 0.07);
+}
+
+.elemento-chip {
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+/* ==========================================================
+   Barras de progreso
+   ========================================================== */
+
+.progreso-mix,
+.progreso-entrenamiento {
+  box-shadow:
+    inset 0 1px 5px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.progreso-mix-bar,
+.progreso-entrenamiento-bar {
+  box-shadow: 0 0 24px rgba(136, 201, 153, 0.14);
+}
+
+/* ==========================================================
+   Tablas con efecto tecnológico
+   ========================================================== */
+
+.table-responsive {
+  border-radius: 0.8rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.tabla-moderna tbody tr {
+  transition:
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.tabla-moderna tbody tr:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(136, 201, 153, 0.06),
+    0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tabla-fija-header thead th {
+  box-shadow: 0 1px 0 rgba(136, 201, 153, 0.10);
+}
+
+/* ==========================================================
+   Badges
+   ========================================================== */
+
+.badge-entrenando {
+  box-shadow: 0 0 18px rgba(136, 201, 153, 0.14);
+  backdrop-filter: blur(4px);
+}
+
+.badge-admin {
+  box-shadow: 0 0 14px rgba(107, 79, 160, 0.22);
+}
+
+/* ==========================================================
+   Botones pequeños de filas
+   ========================================================== */
+
+.btn-fila-accion {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+}
+
+.btn-fila-accion:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+/* ==========================================================
+   Botones de redes sociales
+   ========================================================== */
+
+.btn-red-social {
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.20);
+}
+
+.btn-red-social:hover {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+}
+
+/* ==========================================================
+   Documentos de ayuda
+   ========================================================== */
+
+.seccion-doc {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+.figura-doc {
+  box-shadow:
+    inset 0 0 0 1px rgba(136, 201, 153, 0.06),
+    0 10px 26px rgba(0, 0, 0, 0.22);
+}
+
+.bloque-referencias a {
+  text-shadow: 0 0 14px rgba(136, 201, 153, 0.08);
+}
+
+/* ==========================================================
+   Modales futuristas
+   ========================================================== */
+
+.modal-content.panel {
+  background: rgba(30, 23, 48, 0.88);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.45),
+    0 0 44px rgba(107, 79, 160, 0.10);
+}
+
+.modal-header,
+.modal-footer {
+  backdrop-filter: blur(8px);
+}
+
+/* ==========================================================
+   Toasts futuristas
+   ========================================================== */
+
+.toast {
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.30),
+    0 0 26px rgba(136, 201, 153, 0.06);
+}
+
+.toast-container {
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.22));
+}
+
+/* ==========================================================
+   Scrollbar sutil futurista
+   ========================================================== */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(136, 201, 153, 0.35), rgba(107, 79, 160, 0.35));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(136, 201, 153, 0.52), rgba(107, 79, 160, 0.52));
+  background-clip: content-box;
+}
+
+/* ==========================================================
+   Accesibilidad: reducir movimiento
+   ========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .btn-accion:not(:disabled),
+  .btn-agregar:not(:disabled),
+  .btn-red-social,
+  .panel,
+  .card.panel,
+  .mix-tag,
+  .btn,
+  .navbar .nav-link {
+    animation: none !important;
+    transition: none !important;
+  }
+}
