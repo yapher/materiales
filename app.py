@@ -1,9 +1,6 @@
 import logging
-
 from flask import Flask, jsonify
 
-# Cargar variables de entorno locales si existe .env.
-# En Render no hace falta, porque las variables se configuran en el dashboard.
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -11,12 +8,16 @@ except Exception:
     pass
 
 from config import Config
+
 from blueprints.mezclas import mezclas_bp
 from blueprints.home import home_bp
 from blueprints.admin import admin_bp
 from blueprints.auth import auth_bp
 from blueprints.ayuda import ayuda_bp
+from blueprints.diagnostico import diagnostico_bp
+
 from services.oauth_service import init_oauth, google_habilitado, x_habilitado
+
 from utils import asegurar_admin_semilla, usuario_actual
 
 
@@ -29,48 +30,26 @@ def create_app():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     )
 
-    # ==========================================================
-    # BLUEPRINTS
-    # ==========================================================
     app.register_blueprint(home_bp)
     app.register_blueprint(mezclas_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(ayuda_bp)
+    app.register_blueprint(diagnostico_bp)
 
-    # ==========================================================
-    # LOGIN SOCIAL (Google / X)
-    # ==========================================================
     init_oauth(app)
 
-    # ==========================================================
-    # CONTEXT PROCESSOR
-    #
-    # Usuario logueado disponible en todos los templates como
-    # `usuario_sesion`.
-    # ==========================================================
     @app.context_processor
     def inject_usuario_sesion():
         return {"usuario_sesion": usuario_actual()}
 
-    # ==========================================================
-    # HEALTH CHECK PARA RENDER / LOAD BALANCER
-    # ==========================================================
     @app.get("/healthz")
     def healthz():
         return jsonify({"status": "ok"}), 200
 
-    # ==========================================================
-    # CUENTAS: admin semilla
-    #
-    # Esto es seguro porque no depende de un request HTTP.
-    # ==========================================================
     with app.app_context():
         asegurar_admin_semilla()
 
-    # ==========================================================
-    # LOGS DE ARRANQUE
-    # ==========================================================
     logging.info("--------------------------------------------")
     logging.info("IA Mezclas Industriales lista para recibir requests")
     logging.info(
