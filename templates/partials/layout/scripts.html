@@ -1,0 +1,27 @@
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ==========================================================
+Núcleo modular de mezclas
+Reemplaza al antiguo static/js/mezclas.js
+========================================================== -->
+<script src="{{ url_for('static', filename='js/mezclas/00-namespace.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/01-format.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/02-ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/03-state.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/04-temperatura.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/05-visibilidad.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/06-tablas.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/07-mezcla-ui.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/08-composicion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/09-entrenamiento.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/10-prediccion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mezclas/11-init.js') }}"></script>
+
+<!-- ==========================================================
+Scripts funcionales existentes
+========================================================== -->
+<script src="{{ url_for('static', filename='js/flujo.js') }}"></script>
+<script src="{{ url_for('static', filename='js/configuracion_entrenamiento.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_tarta.js') }}"></script>
+
+{% block extra_js %}{% endblock %}
