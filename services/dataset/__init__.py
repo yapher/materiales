@@ -1,36 +1,37 @@
 """
-Fachada de compatibilidad para services/excel_service.py.
+Paquete de dataset.
 
-Este archivo ya no contiene la implementación principal.
-La lógica fue movida a services/dataset/.
+Modulariza el antiguo services/excel_service.py.
 
-Se mantiene para no romper imports existentes en:
-
-- blueprints/mezclas.py
-- blueprints/admin/__init__.py
-- services/mezcla_service.py
-- services/dataset_upload_service.py
-- services/diagnostico_service.py
+Responsabilidades:
+- cache de datasets por usuario
+- lectura/recarga de datasets
+- detección de columnas
+- features y targets
+- filtros de entrenamiento
+- dataset maestro
+- filas de usuario
+- guardado de predicciones
 """
 
-from .dataset import (
-    # cache
+from .cache import (
     _datasets,
     _dataset_firmas,
     _lock_dataset,
     _firma_archivo,
+)
 
-    # files
-    inicializar_dataset_usuario,
+from .files import inicializar_dataset_usuario
 
-    # loader
+from .loader import (
     cargar_dataset,
     recargar_dataset,
     forzar_recarga_usuario,
     dataset_cargado,
     cargar_excel_service,
+)
 
-    # schema
+from .schema import (
     _es_columna_numerica,
     _columnas_composicion,
     obtener_columnas_composicion,
@@ -38,21 +39,25 @@ from .dataset import (
     obtener_feature_columns,
     obtener_target_columns,
     obtener_esquema_dataset,
+)
 
-    # validation
+from .validation import (
     TOLERANCIA_SUMA_PCT,
     analizar_fila,
+)
 
-    # filters
+from .filters import (
     TOLERANCIA_SUMA_PCT_ENTRENAMIENTO,
     obtener_filas_entrenables,
     filtrar_dataset_entrenamiento,
+)
 
-    # listing
+from .listing import (
     fila_a_dict_json_seguro,
     listar_filas_df,
+)
 
-    # master
+from .master import (
     _dataset_maestro,
     _dataset_maestro_firma,
     _lock_maestro,
@@ -63,21 +68,16 @@ from .dataset import (
     actualizar_fila_maestro,
     eliminar_fila_maestro,
     agregar_fila_maestro,
+)
 
-    # user rows
+from .user_rows import (
     listar_filas_usuario,
     obtener_fila_usuario,
     actualizar_fila_usuario,
     eliminar_fila_usuario,
-
-    # prediction writer
-    guardar_prediccion_en_dataset,
 )
 
-# Compatibilidad con nombres privados viejos.
-_analizar_fila = analizar_fila
-_fila_a_dict_json_seguro = fila_a_dict_json_seguro
-_listar_filas_df = listar_filas_df
+from .prediction_writer import guardar_prediccion_en_dataset
 
 __all__ = [
     # cache
@@ -108,7 +108,6 @@ __all__ = [
     # validation
     "TOLERANCIA_SUMA_PCT",
     "analizar_fila",
-    "_analizar_fila",
 
     # filters
     "TOLERANCIA_SUMA_PCT_ENTRENAMIENTO",
@@ -117,9 +116,7 @@ __all__ = [
 
     # listing
     "fila_a_dict_json_seguro",
-    "_fila_a_dict_json_seguro",
     "listar_filas_df",
-    "_listar_filas_df",
 
     # master
     "_dataset_maestro",
