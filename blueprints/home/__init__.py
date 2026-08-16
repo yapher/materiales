@@ -1,8 +1,24 @@
-from flask import Blueprint, render_template
+"""
+Blueprint de la página de inicio.
 
-home_bp = Blueprint('home', __name__, template_folder='templates')
+Este paquete reemplaza al antiguo blueprints/home/__init__.py monolítico.
 
-@home_bp.route('/')
-@home_bp.route('/inicio')
-def index():
-    return render_template('home/index.html')
+Mantiene exactamente el mismo nombre de blueprint y los mismos
+endpoints, para no romper:
+
+- app.py
+- templates
+- url_for(...)
+"""
+
+from flask import Blueprint
+
+home_bp = Blueprint(
+    "home",
+    __name__,
+    template_folder="templates",
+)
+
+from . import routes_pages
+
+routes_pages.register(home_bp)
