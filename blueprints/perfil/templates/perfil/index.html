@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Mi Perfil - Polvos Coladores{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/perfil.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="titulo-app">
+        <i class="bi bi-person-circle"></i> Mi Perfil
+    </h1>
+    <p class="subtitulo">
+        Gestioná tu cuenta: datos personales, contraseña y foto de perfil
+    </p>
+</div>
+
+<div id="mensajePerfil" class="mensaje-box mb-4" style="display:none;">
+    <span id="mensajePerfilTexto"></span>
+</div>
+
+<div class="row g-4">
+
+    <!-- ==================================================== -->
+    <!-- FOTO DE PERFIL                                       -->
+    <!-- ==================================================== -->
+    <div class="col-md-4">
+        <div class="card panel h-100">
+            <div class="card-body text-center">
+                <h5 class="panel-titulo">
+                    <i class="bi bi-camera"></i> Foto de perfil
+                </h5>
+
+                <div class="avatar-preview-container mb-3">
+                    {% if usuario_tiene_avatar %}
+                    <img
+                        id="avatarPreview"
+                        src="{{ url_for('perfil.avatar') }}?t={{ range(1,99999) | random }}"
+                        alt="Foto de perfil"
+                        class="avatar-preview"
+                    >
+                    {% else %}
+                    <div id="avatarPreview" class="avatar-preview avatar-placeholder">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <input
+                    type="file"
+                    id="inputAvatar"
+                    accept=".png,.jpg,.jpeg,.webp"
+                    hidden
+                >
+
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <button id="btnSubirAvatar" class="btn btn-accion btn-sm">
+                        <i class="bi bi-upload"></i> Subir foto
+                    </button>
+                    <button
+                        id="btnEliminarAvatar"
+                        class="btn btn-agregar btn-sm"
+                        {% if not usuario_tiene_avatar %}disabled{% endif %}
+                    >
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+
+                <p class="text-muted small mt-3 mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Formatos: PNG, JPG, WEBP. Máximo 2 MB.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================================================== -->
+    <!-- DATOS PERSONALES + CONTRASEÑA                        -->
+    <!-- ==================================================== -->
+    <div class="col-md-8">
+
+        <!-- DATOS PERSONALES -->
+        <div class="card panel mb-4">
+            <div class="card-body">
+                <h5 class="panel-titulo">
+                    <i class="bi bi-person-vcard"></i> Datos personales
+                </h5>
+
+                <form id="formDatosPersonales">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label label-sm">Usuario</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                value="{{ usuario.username }}"
+                                disabled
+                            >
+                            <small class="text-muted">
+                                El nombre de usuario no se puede cambiar.
+                            </small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label label-sm">
+                                Nombre completo (opcional)
+                            </label>
+                            <input
+                                type="text"
+                                id="inputNombre"
+                                class="form-control"
+                                value="{{ usuario.get('nombre', '') or '' }}"
+                                maxlength="60"
+                                placeholder="Tu nombre"
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label label-sm">Email (opcional)</label>
+                            <input
+                                type="email"
+                                id="inputEmail"
+                                class="form-control"
+                                value="{{ usuario.get('email', '') or '' }}"
+                                placeholder="tu@email.com"
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label label-sm">Método de ingreso</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                value="{{ usuario.get('proveedor') or 'Usuario/contraseña' }}"
+                                disabled
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-accion">
+                            <i class="bi bi-check-lg"></i> Guardar cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- CAMBIAR CONTRASEÑA -->
+        <div class="card panel">
+            <div class="card-body">
+                <h5 class="panel-titulo">
+                    <i class="bi bi-key"></i> Cambiar contraseña
+                </h5>
+
+                {% if usuario.get('proveedor') %}
+                <div class="config-advertencia">
+                    <i class="bi bi-info-circle"></i>
+                    Tu cuenta fue creada con login social
+                    ({{ usuario.proveedor }}). No tiene contraseña asociada.
+                </div>
+                {% else %}
+                <form id="formCambiarPassword">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label label-sm">
+                                Contraseña actual
+                            </label>
+                            <input
+                                type="password"
+                                id="inputPasswordActual"
+                                class="form-control"
+                                required
+                                autocomplete="current-password"
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label label-sm">
+                                Nueva contraseña
+                            </label>
+                            <input
+                                type="password"
+                                id="inputPasswordNueva"
+                                class="form-control"
+                                required
+                                minlength="6"
+                                autocomplete="new-password"
+                            >
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label label-sm">
+                                Repetir nueva contraseña
+                            </label>
+                            <input
+                                type="password"
+                                id="inputPasswordNueva2"
+                                class="form-control"
+                                required
+                                minlength="6"
+                                autocomplete="new-password"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-accion">
+                            <i class="bi bi-shield-lock"></i> Cambiar contraseña
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/perfil.js') }}"></script>
+{% endblock %}

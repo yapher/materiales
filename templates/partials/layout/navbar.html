@@ -24,52 +24,98 @@
 
         <div class="collapse navbar-collapse" id="navMenu">
             <div class="navbar-nav ms-auto align-items-lg-center">
+
                 <a class="nav-link {{ 'active' if request.endpoint == 'home.index' else '' }}" href="{{ url_for('home.index') }}">
                     <i class="bi bi-house"></i> Inicio
                 </a>
 
                 {% if usuario_sesion %}
-                    <span id="badgeEntrenando" class="badge-entrenando" style="display:none;">
-                        <span class="spinner-border" role="status"></span> Entrenando…
-                    </span>
 
-                    <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.index' else '' }}" href="{{ url_for('mezclas.index') }}">
-                        <i class="bi bi-beaker"></i> Predicción
-                    </a>
+                <span id="badgeEntrenando" class="badge-entrenando" style="display:none;">
+                    <span class="spinner-border" role="status"></span> Entrenando…
+                </span>
 
-                    <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('diagnostico.') else '' }}" href="{{ url_for('diagnostico.index') }}">
-                        <i class="bi bi-clipboard2-pulse"></i> Diagnóstico
-                    </a>
+                <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.index' else '' }}" href="{{ url_for('mezclas.index') }}">
+                    <i class="bi bi-beaker"></i> Predicción
+                </a>
 
-                    <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('ayuda.') else '' }}" href="{{ url_for('ayuda.index') }}">
-                        <i class="bi bi-question-circle"></i> Ayuda
-                    </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('diagnostico.') else '' }}" href="{{ url_for('diagnostico.index') }}">
+                    <i class="bi bi-clipboard2-pulse"></i> Diagnóstico
+                </a>
 
-                    {% if usuario_sesion.es_admin %}
-                        <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.') else '' }}" href="{{ url_for('admin.index') }}">
-                            <i class="bi bi-sliders"></i> Admin
-                        </a>
-                    {% endif %}
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('ayuda.') else '' }}" href="{{ url_for('ayuda.index') }}">
+                    <i class="bi bi-question-circle"></i> Ayuda
+                </a>
 
-                    <span class="nav-link text-muted">
-                        <i class="bi bi-person-circle"></i> {{ usuario_sesion.username }}
-                        {% if usuario_sesion.es_admin %}
-                            <span class="badge-admin">admin</span>
-                        {% endif %}
-                    </span>
-
-                    <a class="nav-link" href="{{ url_for('auth.logout') }}">
-                        <i class="bi bi-box-arrow-right"></i> Salir
-                    </a>
-                {% else %}
-                    <a class="nav-link" href="{{ url_for('auth.login') }}">
-                        <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
-                    </a>
-
-                    <a class="nav-link" href="{{ url_for('auth.registro') }}">
-                        <i class="bi bi-person-plus"></i> Registrarse
-                    </a>
+                {% if usuario_sesion.es_admin %}
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.') else '' }}" href="{{ url_for('admin.index') }}">
+                    <i class="bi bi-sliders"></i> Admin
+                </a>
                 {% endif %}
+
+                <!-- ============================================ -->
+                <!-- DROPDOWN DE USUARIO (submenú de perfil)      -->
+                <!-- ============================================ -->
+                <div class="nav-item dropdown">
+                    <a
+                        class="nav-link nav-link-usuario dropdown-toggle"
+                        href="#"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        {% if usuario_tiene_avatar %}
+                        <img
+                            src="{{ url_for('perfil.avatar') }}"
+                            alt=""
+                            class="avatar-navbar"
+                        >
+                        {% else %}
+                        <i class="bi bi-person-circle"></i>
+                        {% endif %}
+                        {{ usuario_sesion.get('nombre') or usuario_sesion.username }}
+                        {% if usuario_sesion.es_admin %}
+                        <span class="badge-admin">admin</span>
+                        {% endif %}
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <h6 class="dropdown-header">
+                                <i class="bi bi-person-fill me-1"></i>
+                                {{ usuario_sesion.username }}
+                            </h6>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('perfil.index') }}">
+                                <i class="bi bi-person-circle"></i> Mi perfil
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('perfil.index') }}#password">
+                                <i class="bi bi-key"></i> Cambiar contraseña
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> Salir
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                {% else %}
+
+                <a class="nav-link" href="{{ url_for('auth.login') }}">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                </a>
+                <a class="nav-link" href="{{ url_for('auth.registro') }}">
+                    <i class="bi bi-person-plus"></i> Registrarse
+                </a>
+
+                {% endif %}
+
             </div>
         </div>
     </div>

@@ -8,16 +8,15 @@ except Exception:
     pass
 
 from config import Config
-
 from blueprints.mezclas import mezclas_bp
 from blueprints.home import home_bp
 from blueprints.admin import admin_bp
 from blueprints.auth import auth_bp
 from blueprints.ayuda import ayuda_bp
 from blueprints.diagnostico import diagnostico_bp
-
+from blueprints.perfil import perfil_bp
 from services.oauth_service import init_oauth, google_habilitado, x_habilitado
-
+from services.perfil import usuario_tiene_avatar
 from utils import asegurar_admin_semilla, usuario_actual
 
 
@@ -36,12 +35,23 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(ayuda_bp)
     app.register_blueprint(diagnostico_bp)
+    app.register_blueprint(perfil_bp)
 
     init_oauth(app)
 
     @app.context_processor
     def inject_usuario_sesion():
-        return {"usuario_sesion": usuario_actual()}
+        usuario = usuario_actual()
+        tiene_avatar = False
+        if usuario:
+            try:
+                tiene_avatar = usuario_tiene_avatar(usuario["username"])
+            except Exception:
+                tiene_avatar = False
+        return {
+            "usuario_sesion": usuario,
+            "usuario_tiene_avatar": tiene_avatar,
+        }
 
     @app.get("/healthz")
     def healthz():
@@ -81,12 +91,10 @@ def create_app():
         )
 
     logging.info("--------------------------------------------")
-
     return app
 
 
 app = create_app()
-
 
 if __name__ == "__main__":
     app.run(debug=app.config["DEBUG"])

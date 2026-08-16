@@ -27,6 +27,8 @@ from .auth import (
     login_required_json,
     admin_required,
     admin_required_json,
+    cambiar_password,
+    actualizar_perfil,
 )
 
 __all__ = [
@@ -57,4 +59,6 @@ __all__ = [
     "login_required_json",
     "admin_required",
     "admin_required_json",
+    "cambiar_password",
+    "actualizar_perfil",
 ]

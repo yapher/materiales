@@ -4,20 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#14101f">
-
     <title>{% block title %}Polvos Coladores{% endblock %}</title>
-
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mezclas.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flujo.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/configuracion_entrenamiento.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/grafico_tarta.css') }}">
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/perfil.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -29,9 +25,7 @@
 
     {% include "partials/ui/modal_confirmar.html" %}
     {% include "partials/ui/toast_container.html" %}
-
     {% include "partials/layout/scripts.html" %}
-
     {% block extra_js %}{% endblock %}
 </body>
 </html>

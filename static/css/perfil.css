@@ -1,0 +1,132 @@
+/* ==========================================================
+perfil.css
+Estilos de la página de perfil de usuario y del
+dropdown de usuario en el navbar.
+========================================================== */
+
+/* ----------------------------------------------------------
+Avatar preview (página de perfil)
+---------------------------------------------------------- */
+.avatar-preview-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.avatar-preview {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--panel-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.avatar-preview:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(136, 201, 153, 0.2);
+}
+
+.avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #251c3d;
+    color: var(--text-muted);
+    font-size: 3.5rem;
+}
+
+/* ----------------------------------------------------------
+Avatar en navbar (pequeño)
+---------------------------------------------------------- */
+.avatar-navbar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--panel-border);
+    vertical-align: middle;
+    margin-right: 0.3rem;
+    flex-shrink: 0;
+}
+
+/* ----------------------------------------------------------
+Dropdown de usuario en navbar
+---------------------------------------------------------- */
+.nav-link-usuario {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: var(--text) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: 0.65rem;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.nav-link-usuario:hover {
+    background: rgba(136, 201, 153, 0.05);
+}
+
+.nav-link-usuario .dropdown-toggle-icon {
+    font-size: 0.65rem;
+    opacity: 0.6;
+    margin-left: 0.2rem;
+}
+
+.navbar .dropdown-menu {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 0.7rem;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    min-width: 210px;
+    padding: 0.4rem;
+}
+
+.navbar .dropdown-item {
+    color: var(--text-muted);
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-size: 0.92rem;
+}
+
+.navbar .dropdown-item:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.navbar .dropdown-item i {
+    margin-right: 0.5rem;
+    width: 1.2rem;
+    text-align: center;
+}
+
+.navbar .dropdown-divider {
+    border-color: var(--panel-border);
+    margin: 0.3rem 0.5rem;
+}
+
+.navbar .dropdown-header {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem 0.3rem;
+}
+
+/* ----------------------------------------------------------
+Responsive
+---------------------------------------------------------- */
+@media (max-width: 767.98px) {
+    .avatar-preview {
+        width: 110px;
+        height: 110px;
+    }
+
+    .avatar-placeholder {
+        font-size: 2.5rem;
+    }
+}
