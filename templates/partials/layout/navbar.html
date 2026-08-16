@@ -1,0 +1,76 @@
+<nav class="navbar navbar-expand-lg panel mb-4 navbar-fijo">
+    <div class="container">
+        <a class="navbar-brand titulo-app" style="font-size:1.3rem" href="{{ url_for('home.index') }}">
+            <img
+                src="{{ url_for('static', filename='img/favicon.svg') }}"
+                alt=""
+                width="26"
+                height="26"
+                class="align-middle me-1"
+            >
+            Polvos Coladores
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navMenu"
+            aria-controls="navMenu"
+            aria-label="Abrir menú"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+            <div class="navbar-nav ms-auto align-items-lg-center">
+                <a class="nav-link {{ 'active' if request.endpoint == 'home.index' else '' }}" href="{{ url_for('home.index') }}">
+                    <i class="bi bi-house"></i> Inicio
+                </a>
+
+                {% if usuario_sesion %}
+                    <span id="badgeEntrenando" class="badge-entrenando" style="display:none;">
+                        <span class="spinner-border" role="status"></span> Entrenando…
+                    </span>
+
+                    <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.index' else '' }}" href="{{ url_for('mezclas.index') }}">
+                        <i class="bi bi-beaker"></i> Predicción
+                    </a>
+
+                    <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('diagnostico.') else '' }}" href="{{ url_for('diagnostico.index') }}">
+                        <i class="bi bi-clipboard2-pulse"></i> Diagnóstico
+                    </a>
+
+                    <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('ayuda.') else '' }}" href="{{ url_for('ayuda.index') }}">
+                        <i class="bi bi-question-circle"></i> Ayuda
+                    </a>
+
+                    {% if usuario_sesion.es_admin %}
+                        <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.') else '' }}" href="{{ url_for('admin.index') }}">
+                            <i class="bi bi-sliders"></i> Admin
+                        </a>
+                    {% endif %}
+
+                    <span class="nav-link text-muted">
+                        <i class="bi bi-person-circle"></i> {{ usuario_sesion.username }}
+                        {% if usuario_sesion.es_admin %}
+                            <span class="badge-admin">admin</span>
+                        {% endif %}
+                    </span>
+
+                    <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </a>
+                {% else %}
+                    <a class="nav-link" href="{{ url_for('auth.login') }}">
+                        <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                    </a>
+
+                    <a class="nav-link" href="{{ url_for('auth.registro') }}">
+                        <i class="bi bi-person-plus"></i> Registrarse
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

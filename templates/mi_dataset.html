@@ -39,54 +39,9 @@
         <span id="mensajeMiDatasetTexto"></span>
     </div>
 
-    <div class="card panel mb-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                <span class="text-muted small">
-                    <i class="bi bi-list-ol"></i>
-                    Total de filas:
-                    <strong id="totalFilasMiDataset">0</strong>
-                </span>
+    {% include "partials/dataset/mi_dataset_tabla.html" %}
 
-                <span class="text-muted small">
-                    <i class="bi bi-info-circle"></i>
-                    Podés editar, eliminar o exportar cada fila.
-                </span>
-            </div>
-
-            <div class="table-responsive" style="max-height:70vh; overflow-y:auto;">
-                <table class="table tabla-moderna tabla-fija-header" id="tablaMiDataset">
-                    <thead id="cabeceraMiDataset"></thead>
-                    <tbody id="cuerpoMiDataset"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal con el detalle de la inconsistencia -->
-    <div class="modal fade" id="modalInconsistencia" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content panel">
-                <div class="modal-header" style="border-bottom:1px solid var(--panel-border);">
-                    <h5 class="modal-title">
-                        <i class="bi bi-exclamation-triangle-fill icono-advertencia"></i>
-                        Fila inconsistente
-                    </h5>
-
-                    <button
-                        type="button"
-                        class="btn-close btn-close-white"
-                        data-bs-dismiss="modal"
-                        aria-label="Cerrar"
-                    ></button>
-                </div>
-
-                <div class="modal-body">
-                    <p id="motivoInconsistenciaMio" class="mb-0 text-muted"></p>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% include "partials/dataset/modal_inconsistencia_mi_dataset.html" %}
 </div>
 {% endblock %}
 

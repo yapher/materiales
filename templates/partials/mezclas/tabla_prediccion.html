@@ -1,0 +1,40 @@
+<div class="card panel h-100">
+    <div class="card-body">
+        <h5 class="panel-titulo">
+            <i class="bi bi-magic"></i> Predicción
+        </h5>
+
+        <div id="accionesPrediccion" class="d-flex gap-2 mb-3" style="display:none;">
+            <button class="btn btn-agregar btn-sm" onclick="exportarPrediccionPDF()">
+                <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+            </button>
+
+            <button class="btn btn-agregar btn-sm" onclick="guardarPrediccionDataset()">
+                <i class="bi bi-save"></i> Guardar en el dataset
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table tabla-moderna">
+                <thead>
+                    <tr>
+                        <th class="th-sort" onclick="ordenarTabla('prediccion', 'columna')">
+                            Variable <i class="bi bi-arrow-down-up"></i>
+                        </th>
+
+                        <th class="th-sort" onclick="ordenarTabla('prediccion', 'prediccion')">
+                            Predicción <i class="bi bi-arrow-down-up"></i>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaPrediccion"></tbody>
+            </table>
+        </div>
+
+        <div id="prediccionVacia" class="tabla-vacia">
+            <i class="bi bi-graph-up"></i>
+            <p>Todavía no hay predicción calculada</p>
+        </div>
+    </div>
+</div>

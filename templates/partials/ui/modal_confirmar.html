@@ -1,0 +1,33 @@
+<div class="modal fade" id="modalConfirmar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content panel">
+            <div class="modal-header" style="border-bottom:1px solid var(--panel-border);">
+                <h5 class="modal-title">
+                    <i class="bi bi-question-circle-fill icono-advertencia"></i>
+                    <span id="confirmarTitulo">Confirmar</span>
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+            </div>
+
+            <div class="modal-body">
+                <p id="confirmarMensaje" class="mb-0 text-muted"></p>
+            </div>
+
+            <div class="modal-footer" style="border-top:1px solid var(--panel-border);">
+                <button type="button" class="btn btn-agregar" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button" class="btn btn-accion" id="confirmarBotonOk">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

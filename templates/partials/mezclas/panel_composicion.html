@@ -1,0 +1,21 @@
+<div id="panelComposicion" class="card panel mb-4" style="display:none;">
+    <div class="card-body">
+        <h5 class="panel-titulo">
+            <i class="bi bi-beaker"></i> Composición de la mezcla
+        </h5>
+
+        <div class="row g-4">
+            <div class="col-lg-6 d-flex flex-column justify-content-center">
+                {% include "partials/mezclas/form_elemento.html" %}
+
+                {% include "partials/mezclas/form_temperatura.html" %}
+
+                {% include "partials/mezclas/mix_list.html" %}
+            </div>
+
+            <div class="col-lg-6">
+                {% include "partials/mezclas/grafico_tarta_panel.html" %}
+            </div>
+        </div>
+    </div>
+</div>

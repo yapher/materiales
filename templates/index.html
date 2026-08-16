@@ -1,201 +1,24 @@
 {% extends "base.html" %}
+
 {% block title %}Predicción - Polvos Coladores{% endblock %}
+
 {% block content %}
 <div class="text-center mb-5">
-    <h1 class="titulo-app"><i class="bi bi-cpu"></i> IA Mezclas Industriales</h1>
-    <p class="subtitulo">Predicción de propiedades por composición y temperatura</p>
+    <h1 class="titulo-app">
+        <i class="bi bi-cpu"></i> IA Mezclas Industriales
+    </h1>
+    <p class="subtitulo">
+        Predicción de propiedades por composición y temperatura
+    </p>
 </div>
 
 {% include "partials/flujo_modelo.html" %}
 
-<div id="mensajeBox" class="mensaje-box mb-4" style="display:none;">
-    <span id="mensaje"></span>
-</div>
+{% include "partials/ui/mensaje_box_principal.html" %}
 
-<div id="panelComposicion" class="card panel mb-4" style="display:none;">
-    <div class="card-body">
-        <h5 class="panel-titulo">
-            <i class="bi bi-beaker"></i> Composición de la mezcla
-        </h5>
+{% include "partials/mezclas/panel_composicion.html" %}
 
-        <div class="row g-4">
-            <div class="col-lg-6 d-flex flex-column justify-content-center">
-                <div class="row g-2 align-items-end mb-3">
-                    <div class="col-md-5">
-                        <label class="form-label label-sm">Elemento</label>
-                        <select id="elementoSel" class="form-select">
-                            <option value="">Seleccionar...</option>
-                            {% for e in elementos %}
-                                <option value="{{ e }}">{{ e }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label label-sm">Porcentaje</label>
-                        <input
-                            type="number"
-                            id="porcentajeSel"
-                            class="form-control"
-                            value="100"
-                            min="0"
-                            max="100"
-                            step="any"
-                        >
-                    </div>
-
-                    <div class="col-md-3">
-                        <button
-                            id="btnAgregarElemento"
-                            class="btn btn-agregar w-100"
-                            onclick="agregarElemento()"
-                        >
-                            <i class="bi bi-plus-lg"></i> Agregar
-                        </button>
-                    </div>
-                </div>
-
-                <div class="row g-2 align-items-end mb-3">
-                    <div class="col-md-5">
-                        <label class="form-label label-sm" for="temperatura">
-                            Temperatura (K)
-                        </label>
-                        <input
-                            type="number"
-                            id="temperatura"
-                            class="form-control"
-                            placeholder="Ej: 1673"
-                            min="0"
-                            step="any"
-                        >
-                    </div>
-
-                    <div class="col-md-3">
-                        <button
-                            id="btnPredecir"
-                            class="btn btn-accion w-100"
-                            onclick="predecir()"
-                            disabled
-                            style="display:none;"
-                        >
-                            <i class="bi bi-graph-up-arrow"></i> Predecir
-                        </button>
-                    </div>
-                </div>
-
-                <div id="mixContainer" class="d-flex flex-wrap gap-2 mb-3"></div>
-
-                <div class="progreso-mix mb-1">
-                    <div class="progreso-mix-bar" id="mixBar" style="width:0%"></div>
-                </div>
-
-                <small class="text-muted d-block">
-                    Progreso de mezcla: <span id="porcentajeTotal">0</span>%
-                </small>
-
-                <small class="text-muted">
-                    Restante: <span id="porcentajeRestante">100</span>%
-                </small>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="grafico-tarta-panel">
-                    <div class="grafico-tarta-header">
-                        <span class="grafico-tarta-titulo">
-                            <i class="bi bi-pie-chart-fill"></i> Distribución 3D de la mezcla
-                        </span>
-                        <span id="graficoTartaEstado" class="grafico-tarta-estado">
-                            Restante 100%
-                        </span>
-                    </div>
-
-                    <div id="graficoTarta" class="grafico-tarta"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="resultadosModelo" class="row g-4" style="display:none;">
-    <div class="col-md-6">
-        <div class="card panel h-100">
-            <div class="card-body">
-                <h5 class="panel-titulo">
-                    <i class="bi bi-bar-chart-line"></i> Precisión del modelo (R²)
-                </h5>
-
-                <div class="table-responsive">
-                    <table class="table tabla-moderna">
-                        <thead>
-                            <tr>
-                                <th class="th-sort" onclick="ordenarTabla('r2', 'columna')">
-                                    Variable <i class="bi bi-arrow-down-up"></i>
-                                </th>
-                                <th class="th-sort" onclick="ordenarTabla('r2', 'r2')">
-                                    R² <i class="bi bi-arrow-down-up"></i>
-                                </th>
-                                <th
-                                    class="th-sort"
-                                    onclick="ordenarTabla('r2', 'filas_entrenadas')"
-                                    title="Cantidad de filas reales del dataset usadas para entrenar cada variable"
-                                >
-                                    Filas reales <i class="bi bi-arrow-down-up"></i>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaR2"></tbody>
-                    </table>
-                </div>
-
-                <div id="r2Vacio" class="tabla-vacia">
-                    <i class="bi bi-bar-chart"></i>
-                    <p>Todavía no hay modelo entrenado</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card panel h-100">
-            <div class="card-body">
-                <h5 class="panel-titulo">
-                    <i class="bi bi-magic"></i> Predicción
-                </h5>
-
-                <div id="accionesPrediccion" class="d-flex gap-2 mb-3" style="display:none;">
-                    <button class="btn btn-agregar btn-sm" onclick="exportarPrediccionPDF()">
-                        <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
-                    </button>
-
-                    <button class="btn btn-agregar btn-sm" onclick="guardarPrediccionDataset()">
-                        <i class="bi bi-save"></i> Guardar en el dataset
-                    </button>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="table tabla-moderna">
-                        <thead>
-                            <tr>
-                                <th class="th-sort" onclick="ordenarTabla('prediccion', 'columna')">
-                                    Variable <i class="bi bi-arrow-down-up"></i>
-                                </th>
-                                <th class="th-sort" onclick="ordenarTabla('prediccion', 'prediccion')">
-                                    Predicción <i class="bi bi-arrow-down-up"></i>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaPrediccion"></tbody>
-                    </table>
-                </div>
-
-                <div id="prediccionVacia" class="tabla-vacia">
-                    <i class="bi bi-graph-up"></i>
-                    <p>Todavía no hay predicción calculada</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+{% include "partials/mezclas/panel_resultados.html" %}
 
 {% include "partials/modal_configuracion_entrenamiento.html" %}
 {% endblock %}

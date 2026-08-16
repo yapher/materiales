@@ -1,0 +1,45 @@
+<div class="card panel mb-4">
+    <div class="card-body">
+        <h5 class="panel-titulo">
+            <i class="bi bi-search"></i> Variable a analizar
+        </h5>
+
+        {% if variables %}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label label-sm" for="diagnosticoVariable">
+                        Variable entrenable
+                    </label>
+
+                    <select id="diagnosticoVariable" class="form-select">
+                        {% for variable in variables %}
+                            <option
+                                value="{{ variable.valor }}"
+                                {% if variable.valor == variable_default %}selected{% endif %}
+                            >
+                                {{ variable.etiqueta }} ({{ variable.valor }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <button id="btnAnalizarDiagnostico" class="btn btn-accion w-100">
+                        <i class="bi bi-graph-up-arrow"></i> Analizar
+                    </button>
+                </div>
+            </div>
+
+            <p class="text-muted small mt-3 mb-0">
+                <i class="bi bi-info-circle"></i>
+                El diagnóstico se hace sobre tu dataset personal, que es el que usa
+                el entrenamiento. No modifica ningún dato.
+            </p>
+        {% else %}
+            <div class="config-advertencia">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                No se detectaron variables entrenables en el dataset actual.
+            </div>
+        {% endif %}
+    </div>
+</div>

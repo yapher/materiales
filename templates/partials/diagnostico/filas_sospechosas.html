@@ -1,0 +1,32 @@
+<div class="card panel mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h5 class="panel-titulo mb-0">
+                <i class="bi bi-exclamation-triangle"></i> Filas sospechosas
+            </h5>
+
+            <span id="diagContadorSospechosas" class="text-muted small"></span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table tabla-moderna">
+                <thead>
+                    <tr>
+                        <th style="width:70px;">#</th>
+                        <th>Variable</th>
+                        <th>Temperatura</th>
+                        <th>Suma %</th>
+                        <th>Motivos</th>
+                    </tr>
+                </thead>
+
+                <tbody id="diagTablaSospechosas"></tbody>
+            </table>
+        </div>
+
+        <div id="diagSinSospechosas" class="tabla-vacia" style="display:none;">
+            <i class="bi bi-check-circle"></i>
+            <p>No se detectaron filas sospechosas para esta variable.</p>
+        </div>
+    </div>
+</div>
