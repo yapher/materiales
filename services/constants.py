@@ -1,24 +1,56 @@
 """
 Constantes y helpers de nombres.
-
 IMPORTANTE:
 Las variables entrenables YA NO se definen acá.
 Ahora se descubren dinámicamente desde el Excel en services/excel_service.py.
 
 Este archivo mantiene:
 - sufijo de columnas de composición
+- cantidad de columnas iniciales que corresponden a composición (A-K)
 - detección de columna de temperatura
 - etiquetas conocidas para mostrar bonito
 - compatibilidad hacia atrás con imports viejos
 """
 
+import os
 import re
-
 
 # ==========================================================
 # Composición
 # ==========================================================
 SUFIJO_COMPOSICION = "_pct"
+
+# ==========================================================
+# Cantidad de columnas iniciales del Excel que corresponden
+# a la composición de la mezcla.
+#
+# Según el dataset actual:
+# - Columnas A a K => elementos de composición.
+# - Columna L en adelante => variables a modelar.
+#
+# A-K son 11 columnas.
+#
+# Si en el futuro cambiara la estructura del dataset, se puede
+# ajustar con la variable de entorno CANTIDAD_COLUMNAS_COMPOSICION.
+# ==========================================================
+CANTIDAD_COLUMNAS_COMPOSICION = int(
+    os.environ.get("CANTIDAD_COLUMNAS_COMPOSICION", "11")
+)
+
+
+def es_posicion_composicion(indice):
+    """
+    Devuelve True si el índice de la columna pertenece al bloque
+    inicial de composición.
+
+    Ejemplo:
+    - Columna A => índice 0
+    - Columna K => índice 10
+    - Columna L => índice 11
+
+    Para composición A-K, el límite es 11.
+    """
+    return 0 <= indice < CANTIDAD_COLUMNAS_COMPOSICION
 
 
 # ==========================================================
@@ -109,7 +141,6 @@ def etiqueta_amigable(columna):
     Si no, convierte 'Nombre_Columna' en 'Nombre Columna'.
     """
     columna = str(columna)
-
     if columna in MAPA_ETIQUETAS:
         return MAPA_ETIQUETAS[columna]
 
@@ -126,7 +157,6 @@ def descripcion_variable(columna):
     Devuelve una descripción para la UI.
     """
     columna = str(columna)
-
     if columna in MAPA_DESCRIPCIONES:
         return MAPA_DESCRIPCIONES[columna]
 

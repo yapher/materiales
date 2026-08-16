@@ -78,7 +78,6 @@ def obtener_estado_entrenamiento():
 def _normalizar_targets(targets, user_id=None):
     """
     Normaliza la lista de variables a entrenar.
-
     Si targets es None, usa la variable por defecto detectada
     dinámicamente desde el dataset.
     """
@@ -253,14 +252,14 @@ def _entrenar_en_background(user_id, lock, targets):
                     modelos[columna] = info
                     scores[columna] = score
 
-                tiempo_actual = round(time.time() - inicio, 1)
+                    tiempo_actual = round(time.time() - inicio, 1)
 
-                _set_estado_entrenamiento(
-                    user_id,
-                    progreso=i,
-                    columna=columna,
-                    tiempo=tiempo_actual,
-                )
+                    _set_estado_entrenamiento(
+                        user_id,
+                        progreso=i,
+                        columna=columna,
+                        tiempo=tiempo_actual,
+                    )
 
             except Exception as e:
                 logger.exception(
@@ -366,6 +365,38 @@ def predecir_service(mix, temperatura):
 
     if _modelos[user_id] is None:
         raise ValueError("Primero entrená el modelo")
+
+    # ==========================================================
+    # Validación de compatibilidad del modelo con el dataset actual.
+    #
+    # Si el modelo fue entrenado con una versión anterior donde
+    # variables objetivo terminadas en '_pct' fueron detectadas
+    # incorrectamente como composición, ese modelo ya no es válido.
+    #
+    # Ejemplo: si el modelo usa como feature una columna que hoy
+    # el dataset considera variable entrenable, la predicción puede
+    # estar contaminada. En ese caso se pide borrar y reentrenar.
+    # ==========================================================
+    try:
+        esquema_actual = obtener_esquema_dataset(user_id)
+        features_actuales = set(esquema_actual.get("features", []))
+    except Exception:
+        features_actuales = None
+
+    if features_actuales is not None and isinstance(_modelos[user_id], dict):
+        features_invalidas = []
+
+        for info in _modelos[user_id].values():
+            for feature in info.get("features", []):
+                if feature not in features_actuales and feature not in features_invalidas:
+                    features_invalidas.append(feature)
+
+        if features_invalidas:
+            raise ValueError(
+                "El modelo entrenado usa columnas que el dataset actual ya no considera features "
+                f"({', '.join(features_invalidas)}). "
+                "Borrá el modelo desde el panel de Admin y reentrená."
+            )
 
     valido, total = validar_mezcla_100(mix)
 

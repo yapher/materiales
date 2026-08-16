@@ -7,7 +7,7 @@ Responsabilidades:
 - crear backups del dataset maestro anterior y del dataset personal actual
 - guardar una copia del archivo seleccionado dentro de DATA_DIR
 - dejar como dataset maestro activo:
-    DATA_DIR/dataset_maestro_actual.xlsx
+  DATA_DIR/dataset_maestro_actual.xlsx
 - sobreescribir el dataset personal del usuario actual con el nuevo maestro
 - forzar la recarga del dataset maestro y del dataset personal en memoria
 
@@ -30,6 +30,7 @@ from utils import obtener_user_id, archivo_dataset_usuario
 from .excel_service import (
     cargar_dataset_maestro,
     forzar_recarga_usuario,
+    obtener_columnas_composicion,
 )
 
 logger = logging.getLogger(__name__)
@@ -85,11 +86,9 @@ def reemplazar_dataset_maestro(file_storage):
         )
 
     extension = os.path.splitext(nombre_original)[1].lower() or ".xlsx"
-
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 
     tmp_dir = _directorio_tmp()
-
     tmp_path = os.path.join(
         tmp_dir,
         f"dataset_subido_{timestamp}{extension}"
@@ -104,9 +103,7 @@ def reemplazar_dataset_maestro(file_storage):
             tmp_path,
             sheet_name=Config.HOJA_DATASET
         )
-
         df = df.dropna(how="all")
-
     except Exception as error:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
@@ -129,18 +126,19 @@ def reemplazar_dataset_maestro(file_storage):
             "El Excel está vacío o no contiene filas de datos."
         )
 
-    # Validación mínima: debe existir al menos una columna de composición.
-    columnas_pct = [
-        c for c in df.columns
-        if str(c).lower().endswith("_pct")
-    ]
+    # Validación mínima: deben existir columnas de composición en el
+    # bloque inicial A-K. No sirve cualquier columna *_pct en cualquier
+    # posición, porque de la columna L en adelante pueden existir
+    # variables objetivo que también terminen en _pct.
+    columnas_pct = obtener_columnas_composicion(df)
 
     if not columnas_pct:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
         raise ValueError(
-            "El archivo no contiene columnas de composición terminadas en '_pct'. "
+            "El archivo no contiene columnas de composición terminadas en '_pct' "
+            "dentro de las primeras 11 columnas (A-K). "
             "Revisá que sea el dataset correcto."
         )
 
@@ -152,7 +150,6 @@ def reemplazar_dataset_maestro(file_storage):
             backups,
             f"dataset_maestro_anterior_{timestamp}.xlsx"
         )
-
         shutil.copy2(
             Config.ARCHIVO_DATASET,
             respaldo_maestro
@@ -174,7 +171,6 @@ def reemplazar_dataset_maestro(file_storage):
             backups,
             f"dataset_maestro_actual_anterior_{timestamp}.xlsx"
         )
-
         shutil.copy2(
             destino,
             respaldo_actual
@@ -207,7 +203,6 @@ def reemplazar_dataset_maestro(file_storage):
             tmp_path,
             copia_visible
         )
-
     except Exception:
         logger.exception(
             "No se pudo crear la copia visible del dataset en DATA_DIR"
@@ -238,7 +233,6 @@ def reemplazar_dataset_maestro(file_storage):
                 backups,
                 f"dataset_personal_{user_id}_{timestamp}.xlsx"
             )
-
             shutil.copy2(
                 archivo_personal,
                 respaldo_personal

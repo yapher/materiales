@@ -1,4 +1,3 @@
-import re
 import logging
 
 import numpy as np
@@ -7,117 +6,20 @@ import pandas as pd
 from .excel_service import (
     cargar_dataset,
     obtener_filas_entrenables,
+    obtener_feature_columns,
+    obtener_target_columns,
+    detectar_columna_temperatura,
+)
+
+from .constants import (
+    SUFIJO_COMPOSICION,
+    normalizar_nombre_columna,
+    etiqueta_amigable,
 )
 
 logger = logging.getLogger(__name__)
 
-SUFIJO_COMPOSICION = "_pct"
-
-PREFERENCIA_TEMPERATURA = [
-    "Temperatura_K",
-    "Temperatura_k",
-    "Temperatura_C",
-    "Temperatura",
-    "Temperature_K",
-    "Temperature_C",
-    "Temperature",
-    "Temp_K",
-    "Temp_C",
-    "Temp",
-]
-
-_PATRON_TEMPERATURA = re.compile(r"^temp(eratura|erature)?(_(k|c))?$")
-
 TOLERANCIA_SUMA_PCT = 0.5
-
-
-def normalizar_nombre_columna(columna):
-    return str(columna).strip().lower().replace(" ", "_")
-
-
-def es_columna_temperatura(columna):
-    norm = normalizar_nombre_columna(columna)
-    return bool(_PATRON_TEMPERATURA.match(norm))
-
-
-def etiqueta_amigable(columna):
-    return str(columna).replace("_", " ").strip()
-
-
-def _es_columna_numerica(df, columna):
-    if columna not in df.columns:
-        return False
-
-    if pd.api.types.is_numeric_dtype(df[columna]):
-        return True
-
-    try:
-        serie = pd.to_numeric(df[columna], errors="coerce")
-        return bool(serie.notna().any())
-    except Exception:
-        return False
-
-
-def detectar_columna_temperatura(columnas):
-    mapa_normalizado = {
-        normalizar_nombre_columna(c): c
-        for c in columnas
-    }
-
-    for nombre in PREFERENCIA_TEMPERATURA:
-        clave = normalizar_nombre_columna(nombre)
-        if clave in mapa_normalizado:
-            return mapa_normalizado[clave]
-
-    for col in columnas:
-        if es_columna_temperatura(col):
-            return col
-
-    return None
-
-
-def obtener_feature_columns(df):
-    composicion = [
-        c for c in df.columns
-        if str(c).lower().endswith(SUFIJO_COMPOSICION)
-    ]
-
-    temperatura = detectar_columna_temperatura(df.columns)
-
-    features = list(composicion)
-
-    if temperatura is not None and temperatura in df.columns:
-        if temperatura not in features:
-            features.append(temperatura)
-
-    return features
-
-
-def obtener_target_columns(df):
-    """
-    Devuelve las variables a modelar (targets).
-
-    Criterio: CUALQUIER columna numérica que NO sea una feature
-    (es decir, que no sea *_pct ni temperatura), SIN IMPORTAR
-    su posición en la hoja.
-
-    Esto permite detectar TODAS las variables del dataset,
-    incluyendo columnas derivadas como Basicidad_CaO_SiO2 que
-    pueden aparecer entre la composición y la temperatura, y
-    cualquier variable adicional que se agregue al dataset.
-    """
-    features = obtener_feature_columns(df)
-    feature_set = set(features)
-
-    targets = []
-
-    for col in df.columns:
-        if col in feature_set:
-            continue
-        if _es_columna_numerica(df, col):
-            targets.append(col)
-
-    return targets
 
 
 def obtener_variables_diagnostico():
@@ -151,6 +53,7 @@ def obtener_variables_diagnostico():
             default_target = targets[0]
 
     variables = []
+
     for target in targets:
         variables.append({
             "valor": target,
@@ -379,6 +282,7 @@ def analizar_variable(variable):
     # DUPLICADAS EXACTAS
     # ----------------------------------------------------------
     duplicadas_exactas = 0
+
     if features:
         cols_dup = list(features) + [variable]
         duplicadas_exactas = int(
@@ -401,6 +305,7 @@ def analizar_variable(variable):
 
         if not bool(features_no_nulas.at[idx]):
             faltantes = []
+
             for c in features:
                 if pd.isna(feat_df.at[idx, c]):
                     faltantes.append(c)

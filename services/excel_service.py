@@ -11,7 +11,6 @@ from utils import obtener_user_id, archivo_dataset_usuario
 
 logger = logging.getLogger(__name__)
 
-
 # ==========================================================
 # Compatibilidad con services/constants.py dinámico.
 # ==========================================================
@@ -19,6 +18,7 @@ try:
     from .constants import (
         SUFIJO_COMPOSICION,
         PREFERENCIA_TEMPERATURA,
+        CANTIDAD_COLUMNAS_COMPOSICION,
         es_columna_temperatura,
         etiqueta_amigable,
         descripcion_variable,
@@ -43,6 +43,10 @@ except ImportError:
         "Temp",
     ]
 
+    CANTIDAD_COLUMNAS_COMPOSICION = int(
+        os.environ.get("CANTIDAD_COLUMNAS_COMPOSICION", "11")
+    )
+
     _PATRON_TEMPERATURA = re.compile(r"^temp(eratura|erature)?(_(k|c))?$")
 
     def normalizar_nombre_columna(columna):
@@ -61,11 +65,15 @@ except ImportError:
     def etiqueta_temperatura(columna):
         if not columna:
             return "Temperatura"
+
         norm = normalizar_nombre_columna(columna)
+
         if norm.endswith("_k"):
             return "Temperatura (K)"
+
         if norm.endswith("_c"):
             return "Temperatura (°C)"
+
         return etiqueta_amigable(columna)
 
 
@@ -133,6 +141,7 @@ def cargar_dataset(user_id=None):
             return _datasets[user_id]
 
         logger.info("Leyendo dataset usuario %s", user_id)
+
         df = pd.read_excel(
             archivo,
             sheet_name=Config.HOJA_DATASET
@@ -221,11 +230,48 @@ def _es_columna_numerica(df, columna):
 
 
 def _columnas_composicion(df):
+    """
+    Devuelve las columnas de composición.
+
+    IMPORTANTE:
+    El dataset actual tiene esta estructura:
+    - Columnas A a K: elementos de composición.
+    - Columna L en adelante: variables a modelar.
+
+    Por eso NO alcanza con buscar todas las columnas terminadas
+    en '_pct', porque puede haber variables objetivo que también
+    terminen en '_pct', por ejemplo:
+    - C_libre_pct
+    - Fraccion_Cristalina_pct
+
+    Esas columnas NO son elementos de la mezcla: son variables
+    entrenables y están de la columna L hacia adelante.
+
+    Regla aplicada:
+    - Solo se consideran composición las columnas terminadas en
+      '_pct' que estén dentro de las primeras
+      CANTIDAD_COLUMNAS_COMPOSICION columnas del Excel.
+    """
     columnas = []
-    for col in df.columns:
+    limite = int(CANTIDAD_COLUMNAS_COMPOSICION)
+
+    for indice, col in enumerate(df.columns):
+        if indice >= limite:
+            break
+
         if str(col).lower().endswith(SUFIJO_COMPOSICION):
             columnas.append(col)
+
     return columnas
+
+
+def obtener_columnas_composicion(df):
+    """
+    Wrapper público de _columnas_composicion().
+    Se usa también desde dataset_upload_service para validar
+    archivos subidos por el administrador.
+    """
+    return _columnas_composicion(df)
 
 
 def detectar_columna_temperatura(columnas):
@@ -263,25 +309,32 @@ def obtener_target_columns(df):
     """
     Devuelve las variables a modelar (targets).
 
-    Criterio: CUALQUIER columna numérica que NO sea una feature
-    (es decir, que no sea *_pct ni temperatura), SIN IMPORTAR
-    su posición en la hoja.
+    Regla:
+    - Las columnas de composición son las primeras 11 columnas
+      del dataset (A-K) que terminan en '_pct'.
+    - La columna de temperatura, si existe, es feature.
+    - Las variables entrenables se buscan desde la columna L
+      en adelante, es decir, desde el índice 11.
 
-    Esto permite detectar TODAS las variables del dataset:
-    - Columnas derivadas como Basicidad_CaO_SiO2 que pueden
-      aparecer entre la composición y la temperatura.
-    - Cualquier variable adicional que se agregue al dataset
-      (Densidad, Viscosidad, Conductividad, etc.), sin importar
-      en qué columna del Excel estén.
+    Esto evita que variables objetivo que estén en columnas
+    posteriores, pero que terminen en '_pct', sean tratadas
+    como elementos de composición.
     """
     features = obtener_feature_columns(df)
     feature_set = set(features)
+    limite = int(CANTIDAD_COLUMNAS_COMPOSICION)
 
     targets = []
 
-    for col in df.columns:
+    for indice, col in enumerate(df.columns):
         if col in feature_set:
             continue
+
+        # No convertir en target ninguna columna del bloque inicial
+        # de composición (A-K), salvo que ya sea feature por temperatura.
+        if indice < limite:
+            continue
+
         if _es_columna_numerica(df, col):
             targets.append(col)
 
@@ -292,16 +345,17 @@ def obtener_esquema_dataset(user_id=None):
     df = cargar_dataset(user_id)
 
     columnas_composicion = _columnas_composicion(df)
+
     elementos = [
         str(col)[: -len(SUFIJO_COMPOSICION)]
         for col in columnas_composicion
     ]
 
     columna_temperatura = detectar_columna_temperatura(df.columns)
-
     targets = obtener_target_columns(df)
 
     default_target = None
+
     if targets:
         preferidas = [
             "Densidad_kg_m3",
@@ -327,6 +381,7 @@ def obtener_esquema_dataset(user_id=None):
             default_target = targets[0]
 
     variables_entrenables = []
+
     for target in targets:
         variables_entrenables.append({
             "valor": target,
@@ -356,7 +411,6 @@ def obtener_esquema_dataset(user_id=None):
 #    no numérico, lo que fuere), NO se descarta la fila:
 #    se reemplaza la temperatura por 0.
 # ==========================================================
-
 TOLERANCIA_SUMA_PCT_ENTRENAMIENTO = 0.5
 
 
@@ -366,7 +420,7 @@ def obtener_filas_entrenables(df):
     para entrenar.
 
     Criterio de exclusión: SOLO la composición.
-    - Todas las columnas *_pct deben tener valor.
+    - Todas las columnas *_pct de composición deben tener valor.
     - La suma de *_pct debe dar 100 ± tolerancia.
 
     La temperatura NO excluye: si falta o es inválida,
@@ -376,15 +430,19 @@ def obtener_filas_entrenables(df):
 
     if not columnas_pct:
         features = obtener_feature_columns(df)
+
         if not features:
             return pd.Series(True, index=df.index)
+
         columna_temperatura = detectar_columna_temperatura(df.columns)
         features_sin_temp = [
             f for f in features
             if f != columna_temperatura
         ]
+
         if not features_sin_temp:
             return pd.Series(True, index=df.index)
+
         feat_df = df[features_sin_temp].apply(pd.to_numeric, errors="coerce")
         return feat_df.notna().all(axis=1)
 
@@ -392,6 +450,7 @@ def obtener_filas_entrenables(df):
     comp_completa = comp_df.notna().all(axis=1)
 
     suma_pct = comp_df.sum(axis=1)
+
     suma_ok = (
         (suma_pct >= 100 - TOLERANCIA_SUMA_PCT_ENTRENAMIENTO)
         & (suma_pct <= 100 + TOLERANCIA_SUMA_PCT_ENTRENAMIENTO)
@@ -432,7 +491,6 @@ def filtrar_dataset_entrenamiento(df):
         temp_numerica = pd.to_numeric(temp_original, errors="coerce")
 
         temperatura_reemplazada = int(temp_numerica.isna().sum())
-
         df_limpio[columna_temperatura] = temp_numerica.fillna(0)
 
         logger.info(
@@ -448,11 +506,13 @@ def filtrar_dataset_entrenamiento(df):
     columnas_pct = _columnas_composicion(df)
 
     reglas = []
+
     if columnas_pct:
         reglas.append(
             f"composición completa y suma 100% "
             f"± {TOLERANCIA_SUMA_PCT_ENTRENAMIENTO}"
         )
+
     if columna_temperatura is not None:
         reglas.append(
             "temperatura inconsistente reemplazada por 0"
@@ -487,6 +547,7 @@ def guardar_prediccion_en_dataset(mix, temperatura, tabla_prediccion):
         elemento = e.get("elemento", "")
         pct = e.get("pct")
         col = f"{elemento}{SUFIJO_COMPOSICION}"
+
         if col in fila:
             fila[col] = pct
 
@@ -502,6 +563,7 @@ def guardar_prediccion_en_dataset(mix, temperatura, tabla_prediccion):
     df = pd.concat([df, nueva_fila], ignore_index=True)
 
     archivo = archivo_dataset_usuario()
+
     df.to_excel(
         archivo,
         sheet_name=Config.HOJA_DATASET,
@@ -535,6 +597,7 @@ def _analizar_fila(fila, columnas_pct, columna_temperatura=None):
     motivos = []
 
     columnas_obligatorias = list(columnas_pct)
+
     if columna_temperatura is not None and columna_temperatura in fila.index:
         columnas_obligatorias.append(columna_temperatura)
 
@@ -553,6 +616,7 @@ def _analizar_fila(fila, columnas_pct, columna_temperatura=None):
 
     if presentes:
         suma = sum(fila.get(c, 0) for c in presentes)
+
         if abs(suma - 100) > TOLERANCIA_SUMA_PCT:
             motivos.append(
                 f"La composición suma {round(suma, 2)}%, no 100%"
@@ -606,14 +670,16 @@ def guardar_dataset_maestro(df):
             sheet_name=Config.HOJA_DATASET,
             index=False
         )
+
         _dataset_maestro = df
         _dataset_maestro_firma = _firma_archivo(Config.ARCHIVO_DATASET)
 
-    logger.info("Dataset maestro guardado (%s filas)", len(df))
+        logger.info("Dataset maestro guardado (%s filas)", len(df))
 
 
 def _fila_a_dict_json_seguro(fila):
     resultado = {}
+
     for col, val in fila.items():
         if pd.isna(val):
             resultado[col] = None
@@ -623,6 +689,7 @@ def _fila_a_dict_json_seguro(fila):
             resultado[col] = float(val)
         else:
             resultado[col] = val
+
     return resultado
 
 
@@ -631,6 +698,7 @@ def _listar_filas_df(df):
     columna_temperatura = detectar_columna_temperatura(df.columns)
 
     filas = []
+
     for i, fila in df.iterrows():
         inconsistente, motivo = _analizar_fila(
             fila,
@@ -660,12 +728,15 @@ def listar_filas_maestro():
 
 def obtener_fila_maestro(indice):
     data = listar_filas_maestro()
+
     fila = next(
         (f for f in data["filas"] if f["indice"] == indice),
         None
     )
+
     if fila is None:
         raise ValueError("Fila inexistente")
+
     return data["columnas"], fila
 
 
@@ -676,12 +747,15 @@ def listar_filas_usuario():
 
 def obtener_fila_usuario(indice):
     data = listar_filas_usuario()
+
     fila = next(
         (f for f in data["filas"] if f["indice"] == indice),
         None
     )
+
     if fila is None:
         raise ValueError("Fila inexistente")
+
     return data["columnas"], fila
 
 
@@ -697,6 +771,7 @@ def actualizar_fila_usuario(indice, valores):
             df.at[indice, col] = val
 
     archivo = archivo_dataset_usuario()
+
     df.to_excel(
         archivo,
         sheet_name=Config.HOJA_DATASET,
@@ -726,6 +801,7 @@ def eliminar_fila_usuario(indice):
     df = df.drop(index=indice).reset_index(drop=True)
 
     archivo = archivo_dataset_usuario()
+
     df.to_excel(
         archivo,
         sheet_name=Config.HOJA_DATASET,
@@ -756,6 +832,7 @@ def actualizar_fila_maestro(indice, valores):
             df.at[indice, col] = val
 
     guardar_dataset_maestro(df)
+
     return df
 
 
@@ -767,15 +844,20 @@ def eliminar_fila_maestro(indice):
 
     df = df.drop(index=indice).reset_index(drop=True)
     guardar_dataset_maestro(df)
+
     return df
 
 
 def agregar_fila_maestro(valores):
     df = cargar_dataset_maestro()
+
     nueva = {col: valores.get(col) for col in df.columns}
+
     df = pd.concat(
         [df, pd.DataFrame([nueva])],
         ignore_index=True
     )
+
     guardar_dataset_maestro(df)
+
     return df
