@@ -1,16 +1,19 @@
 """
-Fachada de compatibilidad para services/mezcla_service.py.
+Paquete de modelado.
 
-Este archivo ya no contiene la implementación principal.
-La lógica fue movida a services/modeling/.
+Modulariza el antiguo services/mezcla_service.py.
 
-Se mantiene para no romper imports existentes en:
-
-- blueprints/mezclas.py
-- blueprints/admin/__init__.py
+Responsabilidades:
+- estado global de modelos y entrenamiento
+- carga y persistencia de modelos
+- información de entrenamiento
+- última predicción
+- entrenamiento en background
+- predicción
+- estado general del sistema
 """
 
-from .modeling.state import (
+from .state import (
     _modelos,
     _locks,
     _lock_global,
@@ -22,31 +25,31 @@ from .modeling.state import (
     obtener_estado_entrenamiento,
 )
 
-from .modeling.store import (
+from .store import (
     cargar_modelo,
     _guardar_modelo,
     reset_modelo_service,
 )
 
-from .modeling.info import (
+from .info import (
     _guardar_info_modelo,
     info_modelo_service,
 )
 
-from .modeling.last_prediction import (
+from .last_prediction import (
     guardar_ultima_prediccion,
     obtener_ultima_prediccion,
 )
 
-from .modeling.training import (
+from .training import (
     _normalizar_targets,
     iniciar_entrenamiento,
     _entrenar_en_background,
 )
 
-from .modeling.prediction import predecir_service
+from .prediction import predecir_service
 
-from .modeling.status import estado_service
+from .status import estado_service
 
 
 __all__ = [
