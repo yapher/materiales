@@ -1,0 +1,50 @@
+/* ==========================================================
+layout/navbar.css
+Estilos del navbar superior y badges de navegación.
+========================================================== */
+
+.navbar.panel {
+    padding: 0.6rem 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+}
+
+.navbar .nav-link {
+    color: var(--text-muted) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    transition: color 0.15s ease;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+    color: var(--accent) !important;
+}
+
+.navbar-toggler {
+    border-color: var(--panel-border);
+}
+
+.navbar-toggler-icon {
+    filter: invert(1) grayscale(1);
+}
+
+.navbar-fijo {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+.badge-admin {
+    background: var(--violet);
+    color: #ffffff !important;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.4rem;
+    margin-left: 0.35rem;
+    text-transform: uppercase;
+    vertical-align: middle;
+}

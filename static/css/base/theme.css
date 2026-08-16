@@ -1,0 +1,35 @@
+/* ==========================================================
+base/theme.css
+Variables globales, fondo general y tipografía base.
+========================================================== */
+
+:root {
+    --bg: #14101f;
+    --panel: #1e1730;
+    --panel-border: #2f2547;
+    --accent: #88c999;
+    --accent-soft: rgba(136, 201, 153, 0.15);
+    --violet: #6b4fa0;
+    --text: #f1eefc;
+    --text-muted: #9c93b8;
+}
+
+body {
+    background: radial-gradient(circle at top, #241a3d, var(--bg) 60%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+}
+
+.titulo-app {
+    font-weight: 700;
+    font-size: 2.2rem;
+    background: linear-gradient(90deg, var(--accent), var(--violet));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.subtitulo {
+    color: var(--text-muted);
+}

@@ -1,0 +1,290 @@
+/* ==========================================================
+components/ui.css
+Componentes generales de UI:
+- paneles
+- formularios
+- botones
+- chips de mezcla
+- barras de progreso
+- mensajes
+- toasts
+- badges
+========================================================== */
+
+/* ----------------------------------------------------------
+Paneles
+---------------------------------------------------------- */
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.panel-titulo {
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+.panel .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.panel .text-muted span {
+    color: var(--accent) !important;
+    font-weight: 600;
+}
+
+/* ----------------------------------------------------------
+Formularios
+---------------------------------------------------------- */
+.form-select,
+.form-control {
+    background-color: #251c3d;
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+}
+
+.form-select:focus,
+.form-control:focus {
+    background-color: #251c3d;
+    color: var(--text);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem var(--accent-soft);
+}
+
+.label-sm {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* ----------------------------------------------------------
+Botones
+---------------------------------------------------------- */
+.btn-agregar {
+    background: var(--accent) !important;
+    color: #14101f !important;
+    font-weight: 600;
+    border: none !important;
+    border-radius: 0.6rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-agregar:hover,
+.btn-agregar:focus {
+    background: var(--accent) !important;
+    color: #14101f !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px var(--accent-soft);
+}
+
+.btn-accion {
+    background: linear-gradient(135deg, var(--violet), #4a3773) !important;
+    color: #fff !important;
+    font-weight: 600;
+    border: none !important;
+    border-radius: 0.7rem;
+    padding: 0.6rem 1.4rem;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-accion:hover:not(:disabled),
+.btn-accion:focus:not(:disabled) {
+    background: linear-gradient(135deg, var(--violet), #4a3773) !important;
+    color: #fff !important;
+    transform: translateY(-2px);
+}
+
+.btn-accion:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------
+Chips de mezcla
+---------------------------------------------------------- */
+.mix-tag {
+    background: #251c3d;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.7rem;
+    padding: 0.4rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text);
+    animation: aparecer 0.25s ease;
+}
+
+.mix-tag-pct {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.elemento-chip {
+    width: 34px;
+    height: 34px;
+    border-radius: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #14101f;
+    flex-shrink: 0;
+}
+
+.mix-tag button {
+    background: none;
+    border: none;
+    color: #e88;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ----------------------------------------------------------
+Barras de progreso
+---------------------------------------------------------- */
+.progreso-mix {
+    background: #251c3d;
+    border-radius: 1rem;
+    height: 14px;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.progreso-mix-bar {
+    height: 100%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+    border-radius: 1rem;
+    position: relative;
+}
+
+.progreso-mix-bar.progreso-incompleto {
+    background: linear-gradient(90deg, #e0a97f, #e07f7f);
+    box-shadow: 0 0 12px rgba(224, 127, 127, 0.35);
+}
+
+.progreso-mix-bar.progreso-completo {
+    background: linear-gradient(90deg, #6bcf80, var(--accent));
+    box-shadow: 0 0 18px rgba(136, 201, 153, 0.40);
+}
+
+.progreso-mix-bar.progreso-excedido {
+    background: linear-gradient(90deg, #e07f7f, #c95555);
+    box-shadow: 0 0 18px rgba(224, 127, 127, 0.50);
+    animation: parpadeo-exceso 1.2s ease-in-out infinite;
+}
+
+@keyframes parpadeo-exceso {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+#porcentajeTotal {
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.progreso-entrenamiento {
+    background: #251c3d;
+    border-radius: 0.6rem;
+    height: 28px;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+}
+
+.progreso-entrenamiento-bar {
+    background: linear-gradient(90deg, var(--violet), var(--accent));
+    height: 100%;
+    color: #14101f;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.4s ease;
+    white-space: nowrap;
+}
+
+/* ----------------------------------------------------------
+Mensajes y alertas
+---------------------------------------------------------- */
+.mensaje-box {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 0.6rem;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.icono-advertencia {
+    color: #e0a97f;
+}
+
+/* ----------------------------------------------------------
+Toasts
+---------------------------------------------------------- */
+.toast {
+    background: var(--panel) !important;
+    border: 1px solid var(--panel-border) !important;
+    color: var(--text) !important;
+}
+
+.toast .toast-header {
+    background: #251c3d !important;
+    color: var(--text) !important;
+    border-bottom: 1px solid var(--panel-border) !important;
+}
+
+.toast.toast-exito .toast-header i {
+    color: var(--accent);
+}
+
+.toast.toast-error .toast-header i {
+    color: #e07f7f;
+}
+
+/* ----------------------------------------------------------
+Badges
+---------------------------------------------------------- */
+.badge-entrenando {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.badge-entrenando .spinner-border {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-width: 2px;
+}

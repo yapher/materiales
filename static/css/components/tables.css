@@ -1,0 +1,255 @@
+/* ==========================================================
+components/tables.css
+Estilos de tablas generales, tablas R², predicción,
+dataset y acciones de fila.
+========================================================== */
+
+/* ----------------------------------------------------------
+Tabla moderna general
+---------------------------------------------------------- */
+.tabla-moderna {
+    --bs-table-color: var(--text);
+    --bs-table-bg: transparent;
+    --bs-table-striped-color: var(--text);
+    --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+    --bs-table-hover-color: var(--text);
+    --bs-table-hover-bg: rgba(136, 201, 153, 0.06);
+    --bs-table-border-color: var(--panel-border);
+    color: var(--text);
+    margin-bottom: 0;
+}
+
+.tabla-moderna thead {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.tabla-moderna tbody tr {
+    border-color: var(--panel-border);
+}
+
+.tabla-moderna td,
+.tabla-moderna td * {
+    color: var(--text) !important;
+}
+
+.tabla-moderna th.th-sort {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s ease;
+}
+
+.tabla-moderna th.th-sort:hover {
+    color: var(--accent);
+}
+
+.tabla-moderna th.th-sort i {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-left: 0.25rem;
+}
+
+.tabla-moderna td {
+    vertical-align: middle;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+}
+
+.var-nombre {
+    font-weight: 600;
+    color: var(--text) !important;
+}
+
+/* ----------------------------------------------------------
+Celdas R²
+---------------------------------------------------------- */
+.r2-celda {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.r2-barra-bg {
+    flex: 1;
+    background: #251c3d;
+    border-radius: 1rem;
+    height: 8px;
+    overflow: hidden;
+    min-width: 60px;
+}
+
+.r2-barra-fill {
+    height: 100%;
+    border-radius: 1rem;
+    transition: width 0.4s ease;
+}
+
+.r2-barra-fill.r2-bueno {
+    background: linear-gradient(90deg, #6bcf80, var(--accent));
+}
+
+.r2-barra-fill.r2-medio {
+    background: linear-gradient(90deg, #e0c26f, #f2d879);
+}
+
+.r2-barra-fill.r2-malo {
+    background: linear-gradient(90deg, #e07f7f, #e0a97f);
+}
+
+.r2-valor {
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 42px;
+    text-align: right;
+}
+
+.r2-valor.r2-txt-bueno {
+    color: var(--accent) !important;
+}
+
+.r2-valor.r2-txt-medio {
+    color: #f2d879 !important;
+}
+
+.r2-valor.r2-txt-malo {
+    color: #e0a97f !important;
+}
+
+.pred-valor {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent) !important;
+}
+
+/* ----------------------------------------------------------
+Estado vacío de tabla
+---------------------------------------------------------- */
+.tabla-vacia {
+    display: none;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+}
+
+.tabla-vacia i {
+    font-size: 2rem;
+    opacity: 0.4;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.tabla-vacia p {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+/* ----------------------------------------------------------
+Header fijo para tablas scrolleables
+---------------------------------------------------------- */
+.tabla-fija-header thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--panel) !important;
+    box-shadow: 0 1px 0 var(--panel-border);
+}
+
+/* ----------------------------------------------------------
+Dataset: inconsistencias y acciones de fila
+---------------------------------------------------------- */
+.fila-inconsistente {
+    background: rgba(224, 127, 127, 0.08);
+}
+
+.chip-advertencia {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(224, 169, 127, 0.15);
+    color: #e0a97f;
+    border: 1px solid rgba(224, 169, 127, 0.4);
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chip-advertencia:hover {
+    transform: scale(1.12);
+    background: rgba(224, 169, 127, 0.3);
+    box-shadow: 0 0 0 4px rgba(224, 169, 127, 0.12);
+}
+
+.chip-advertencia i {
+    font-size: 0.95rem;
+}
+
+.btn-fila-accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 0.6rem;
+    border: 1px solid transparent;
+    background: #251c3d;
+    color: var(--text-muted);
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-fila-accion:hover {
+    transform: translateY(-1px);
+}
+
+.btn-fila-accion.accion-editar {
+    background: rgba(136, 201, 153, 0.12);
+    color: var(--accent);
+    border-color: rgba(136, 201, 153, 0.35);
+}
+
+.btn-fila-accion.accion-editar:hover {
+    background: rgba(136, 201, 153, 0.28);
+}
+
+.btn-fila-accion.accion-borrar {
+    background: rgba(224, 127, 127, 0.12);
+    color: #e07f7f;
+    border-color: rgba(224, 127, 127, 0.35);
+}
+
+.btn-fila-accion.accion-borrar:hover {
+    background: rgba(224, 127, 127, 0.28);
+}
+
+.btn-fila-accion.accion-pdf {
+    background: rgba(224, 169, 127, 0.12);
+    color: #e0a97f;
+    border-color: rgba(224, 169, 127, 0.35);
+}
+
+.btn-fila-accion.accion-pdf:hover {
+    background: rgba(224, 169, 127, 0.28);
+}
+
+.btn-fila-accion.accion-guardar {
+    background: rgba(136, 201, 153, 0.12);
+    color: var(--accent);
+    border-color: rgba(136, 201, 153, 0.35);
+}
+
+.btn-fila-accion.accion-guardar:hover {
+    background: rgba(136, 201, 153, 0.28);
+}
+
+.btn-fila-accion.accion-cancelar {
+    background: rgba(224, 127, 127, 0.12);
+    color: #e07f7f;
+    border-color: rgba(224, 127, 127, 0.35);
+}
+
+.btn-fila-accion.accion-cancelar:hover {
+    background: rgba(224, 127, 127, 0.28);
+}

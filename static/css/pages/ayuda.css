@@ -1,0 +1,114 @@
+/* ==========================================================
+pages/ayuda.css
+Estilos específicos de páginas de ayuda, documentos
+y sección de desarrolladora.
+========================================================== */
+
+/* ----------------------------------------------------------
+Desarrolladora / redes
+---------------------------------------------------------- */
+.avatar-desarrolladora {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #14101f;
+    background: linear-gradient(135deg, var(--accent), var(--violet));
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.btn-red-social {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 0.6rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: #fff !important;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-red-social:hover {
+    transform: translateY(-2px);
+    opacity: 0.92;
+}
+
+.btn-linkedin {
+    background: #0a66c2;
+}
+
+.btn-instagram {
+    background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4);
+}
+
+.btn-x {
+    background: #14101f;
+    border: 1px solid var(--panel-border);
+}
+
+/* ----------------------------------------------------------
+Documentos de ayuda
+---------------------------------------------------------- */
+.seccion-doc {
+    border-left: 3px solid var(--accent);
+}
+
+.figura-doc {
+    margin: 1.1rem 0 0.4rem;
+    text-align: center;
+    background: #14101f;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.8rem;
+    padding: 0.9rem;
+}
+
+.figura-doc img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+}
+
+.pie-figura {
+    margin: 0.6rem 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.bloque-referencias {
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--panel-border);
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.lista-referencias {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.lista-referencias li {
+    margin-bottom: 0.35rem;
+}
+
+.lista-referencias a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.lista-referencias a:hover {
+    text-decoration: underline;
+}
+
+.lista-referencias i {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}

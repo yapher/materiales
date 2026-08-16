@@ -1,0 +1,265 @@
+/* ==========================================================
+features/flujo.css
+Estilos del flujo de pasos: dataset, entrenamiento y predicción.
+========================================================== */
+
+:root {
+    --flujo-bg-1: #2e2350;
+    --flujo-bg-2: #251c3d;
+    --flujo-border: #4b3b75;
+    --flujo-border-active: #88c999;
+    --flujo-border-complete: #a3ffbe;
+    --flujo-border-error: #e07f7f;
+    --flujo-text-main: #ffffff;
+    --flujo-text-muted: #cfc8e6;
+    --flujo-shadow: 0 14px 34px rgba(0, 0, 0, 0.30);
+    --flujo-glow-green: rgba(136, 201, 153, 0.22);
+    --flujo-glow-violet: rgba(107, 79, 160, 0.28);
+}
+
+.flujo-panel {
+    background:
+        radial-gradient(circle at top right, rgba(136, 201, 153, 0.10), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(107, 79, 160, 0.16), transparent 34%),
+        linear-gradient(180deg, var(--flujo-bg-1), var(--flujo-bg-2));
+    border: 1px solid var(--flujo-border);
+    box-shadow: var(--flujo-shadow);
+}
+
+.flujo-titulo-principal {
+    font-size: 1.25rem;
+    letter-spacing: 0.01rem;
+}
+
+.flujo-contenedor {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+}
+
+.flujo-paso {
+    flex: 1;
+    display: flex;
+    gap: .95rem;
+    align-items: flex-start;
+    padding: 1.15rem;
+    border-radius: 1rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+        #281e43;
+    border: 1px solid rgba(136, 201, 153, 0.18);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    transition: all .22s ease;
+    min-height: 170px;
+}
+
+.flujo-icono {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.45rem;
+    background:
+        linear-gradient(135deg, rgba(136, 201, 153, 0.16), rgba(107, 79, 160, 0.20));
+    border: 2px solid rgba(136, 201, 153, 0.28);
+    color: var(--flujo-text-main);
+    box-shadow:
+        0 0 0 6px rgba(136, 201, 153, 0.05),
+        0 8px 22px rgba(0, 0, 0, 0.22);
+    transition: all .22s ease;
+}
+
+.flujo-info {
+    min-width: 0;
+    flex: 1;
+}
+
+.flujo-step-badge {
+    display: inline-block;
+    margin-bottom: .45rem;
+    padding: .22rem .55rem;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #14101f;
+    background: linear-gradient(90deg, #88c999, #c9a3f2);
+    box-shadow: 0 0 18px rgba(136, 201, 153, 0.18);
+}
+
+.flujo-titulo {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--flujo-text-main);
+    margin-bottom: .28rem;
+    text-shadow: 0 0 16px rgba(136, 201, 153, 0.12);
+}
+
+.flujo-descripcion {
+    color: var(--flujo-text-muted);
+    font-size: .95rem;
+    line-height: 1.35;
+    margin-bottom: .8rem;
+}
+
+.flujo-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flujo-acciones .btn {
+    font-weight: 700;
+}
+
+/* ==========================================================
+BOTÓN DE CONFIGURACIÓN REDONDO ROJO
+========================================================== */
+.btn-config-redondo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e07f7f, #c95555);
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.10);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    box-shadow:
+        0 8px 20px rgba(224, 127, 127, 0.30),
+        0 0 0 4px rgba(224, 127, 127, 0.08);
+    transition: all 0.22s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.btn-config-redondo:hover {
+    transform: translateY(-2px) scale(1.06) rotate(15deg);
+    box-shadow:
+        0 12px 28px rgba(224, 127, 127, 0.40),
+        0 0 0 5px rgba(224, 127, 127, 0.12);
+    background: linear-gradient(135deg, #e88888, #d66060);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn-config-redondo:active {
+    transform: translateY(0) scale(0.96) rotate(0deg);
+}
+
+.btn-config-redondo i {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
+.flujo-conector {
+    flex: 0 0 42px;
+    height: 4px;
+    margin-top: calc(1.15rem + 28px);
+    border-radius: 999px;
+    background:
+        linear-gradient(90deg, rgba(136, 201, 153, 0.16), rgba(107, 79, 160, 0.30));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    opacity: .8;
+    transition: all .25s ease;
+}
+
+.flujo-paso.paso-activo {
+    border-color: rgba(136, 201, 153, 0.45);
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.24),
+        0 0 28px var(--flujo-glow-green);
+    transform: translateY(-2px);
+}
+
+.flujo-paso.paso-activo .flujo-icono {
+    border-color: rgba(136, 201, 153, 0.65);
+    color: #eafff2;
+    box-shadow:
+        0 0 0 7px rgba(136, 201, 153, 0.08),
+        0 0 28px rgba(136, 201, 153, 0.22);
+}
+
+.flujo-paso.paso-completo {
+    border-color: rgba(136, 201, 153, 0.65);
+    background:
+        linear-gradient(180deg, rgba(136, 201, 153, 0.12), rgba(255, 255, 255, 0.02)),
+        #23322b;
+    box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.26),
+        0 0 34px rgba(136, 201, 153, 0.20);
+    transform: translateY(-2px);
+}
+
+.flujo-paso.paso-completo .flujo-icono {
+    background: linear-gradient(135deg, #88c999, #6b4fa0);
+    border-color: transparent;
+    color: #102018;
+    box-shadow:
+        0 0 0 7px rgba(136, 201, 153, 0.10),
+        0 0 34px rgba(136, 201, 153, 0.28);
+}
+
+.flujo-paso.paso-completo .flujo-step-badge {
+    background: linear-gradient(90deg, #b7ffd0, #88c999);
+}
+
+.flujo-paso.paso-error {
+    border-color: rgba(224, 127, 127, 0.65);
+    background:
+        linear-gradient(180deg, rgba(224, 127, 127, 0.12), rgba(255, 255, 255, 0.02)),
+        #372226;
+    box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.26),
+        0 0 34px rgba(224, 127, 127, 0.18);
+    transform: translateY(-2px);
+}
+
+.flujo-paso.paso-error .flujo-icono {
+    border-color: rgba(224, 127, 127, 0.72);
+    color: #ffe3e3;
+    box-shadow:
+        0 0 0 7px rgba(224, 127, 127, 0.08),
+        0 0 28px rgba(224, 127, 127, 0.20);
+}
+
+.flujo-paso.paso-error .flujo-step-badge {
+    background: linear-gradient(90deg, #ffd3d3, #e07f7f);
+}
+
+.flujo-conector.conector-completo {
+    background: linear-gradient(90deg, #88c999, #6b4fa0);
+    box-shadow:
+        0 0 18px rgba(136, 201, 153, 0.30),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    opacity: 1;
+}
+
+@media (max-width: 991.98px) {
+    .flujo-contenedor {
+        flex-direction: column;
+    }
+
+    .flujo-conector {
+        flex: none;
+        width: 4px;
+        height: 38px;
+        margin-top: -0.35rem;
+        margin-bottom: -0.35rem;
+        margin-left: calc(1.15rem + 28px);
+        background:
+            linear-gradient(180deg, rgba(136, 201, 153, 0.16), rgba(107, 79, 160, 0.30));
+    }
+
+    .flujo-conector.conector-completo {
+        background: linear-gradient(180deg, #88c999, #6b4fa0);
+    }
+
+    .flujo-paso {
+        min-height: auto;
+    }
+}
