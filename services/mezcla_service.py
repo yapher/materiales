@@ -3,8 +3,11 @@ Fachada de compatibilidad para services/mezcla_service.py.
 Este archivo ya no contiene la implementación principal.
 La lógica fue movida a services/modeling/.
 Se mantiene para no romper imports existentes en:
-- blueprints/mezclas.py
-- blueprints/admin/__init__.py
+- blueprints/mezclas/routes_page.py
+- blueprints/mezclas/routes_training.py
+- blueprints/mezclas/routes_prediction.py
+- blueprints/mezclas/routes_grafico.py
+- blueprints/admin/routes_general.py
 """
 from .modeling.state import (
     _modelos,
@@ -38,10 +41,6 @@ from .modeling.training import (
 from .modeling.prediction import predecir_service
 from .modeling.status import estado_service
 from .modeling.grafico import generar_grafico_densidad
-from .modeling.regresion import (
-    generar_grafico_regresion,
-    listar_variables_regresion,
-)
 
 __all__ = [
     # state
@@ -72,9 +71,6 @@ __all__ = [
     "predecir_service",
     # status
     "estado_service",
-    # grafico
+    # graficos
     "generar_grafico_densidad",
-    # regresion
-    "generar_grafico_regresion",
-    "listar_variables_regresion",
 ]

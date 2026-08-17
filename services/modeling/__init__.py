@@ -9,7 +9,7 @@ Responsabilidades:
 - entrenamiento en background
 - predicción
 - estado general del sistema
-- generación de gráficos derivados
+- gráficos derivados del modelo (densidad vs. temperatura)
 """
 from .state import (
     _modelos,
@@ -43,10 +43,6 @@ from .training import (
 from .prediction import predecir_service
 from .status import estado_service
 from .grafico import generar_grafico_densidad
-from .regresion import (
-    generar_grafico_regresion,
-    listar_variables_regresion,
-)
 
 __all__ = [
     # state
@@ -77,9 +73,6 @@ __all__ = [
     "predecir_service",
     # status
     "estado_service",
-    # grafico
+    # graficos
     "generar_grafico_densidad",
-    # regresion
-    "generar_grafico_regresion",
-    "listar_variables_regresion",
 ]

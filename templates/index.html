@@ -1,11 +1,5 @@
 {% extends "base.html" %}
 {% block title %}Predicción - Polvos Coladores{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/grafico_densidad.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/grafico_regresion.css') }}">
-{% endblock %}
-
 {% block content %}
 <div class="text-center mb-5">
     <h1 class="titulo-app">
@@ -22,5 +16,4 @@
 {% include "partials/mezclas/panel_resultados.html" %}
 {% include "partials/modal_configuracion_entrenamiento.html" %}
 {% include "partials/mezclas/modal_grafico_densidad.html" %}
-{% include "partials/mezclas/modal_grafico_regresion.html" %}
 {% endblock %}
