@@ -89,6 +89,7 @@ vacio.style.display = "block";
 if (acciones) {
 acciones.style.display = "none";
 }
+// Ocultar gráficos si no hay predicción
 IAM.actualizarVisibilidadGraficos();
 IAM.notificarWorkflow();
 return;
@@ -105,6 +106,7 @@ tbody.innerHTML = IAM.state.datosPrediccion.map(row => `
 <td><span class="pred-valor">${IAM.escaparHtml(row.prediccion)}</span></td>
 </tr>
 `).join("");
+// Mostrar gráficos SOLO cuando hay predicción
 IAM.actualizarVisibilidadGraficos();
 IAM.notificarWorkflow();
 };

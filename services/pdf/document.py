@@ -3,12 +3,9 @@ Generación de PDF para documentos de ayuda.
 """
 
 import io
-
 from xml.sax.saxutils import escape
-
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
-
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -29,15 +26,12 @@ def generar_pdf_documento(
 ):
     """
     Devuelve un BytesIO con el PDF de un documento de ayuda.
-
     Este PDF se usa para:
-
     - tutorial,
     - teoría de modelos,
     - documentación técnica del sistema.
     """
     buffer = io.BytesIO()
-
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
@@ -49,7 +43,6 @@ def generar_pdf_documento(
     )
 
     estilos = obtener_estilos()
-
     elementos = [
         Paragraph(escape(titulo), estilos["titulo"])
     ]
@@ -77,7 +70,6 @@ def generar_pdf_documento(
             )
 
         items = seccion.get("items", [])
-
         if items:
             elementos.append(
                 ListFlowable(
@@ -92,20 +84,21 @@ def generar_pdf_documento(
                     leftIndent=14,
                 )
             )
-
             elementos.append(Spacer(1, 8))
 
-        codigo = seccion.get("codigo")
+        # Párrafos extra (después de los items)
+        for parrafo in seccion.get("parrafos_extra", []):
+            elementos.append(
+                Paragraph(escape(parrafo), estilos["parrafo"])
+            )
 
+        codigo = seccion.get("codigo")
         if codigo:
             elementos.append(
                 Preformatted(codigo, estilos["codigo"])
             )
-
             elementos.append(Spacer(1, 10))
 
     doc.build(elementos)
-
     buffer.seek(0)
-
     return buffer

@@ -16,15 +16,14 @@ from services.ayuda_content import (
     contenido_modelos,
     contenido_sistema,
 )
-
 from services.pdf_service import generar_pdf_documento
-
 from utils import login_required, admin_required, usuario_actual
 
 
 def register(bp):
     """
-    Registra las rutas de documentos de ayuda sobre el blueprint de ayuda.
+    Registra las rutas de documentos de ayuda
+    sobre el blueprint de ayuda.
     """
 
     # ==========================================================
@@ -42,7 +41,6 @@ def register(bp):
     @login_required
     def tutorial():
         secciones, subtitulo = contenido_tutorial()
-
         return render_template(
             "ayuda/documento.html",
             titulo="Tutorial de uso",
@@ -56,13 +54,11 @@ def register(bp):
     @login_required
     def tutorial_pdf():
         secciones, subtitulo = contenido_tutorial()
-
         buffer = generar_pdf_documento(
             "Tutorial de uso",
             secciones,
-            subtitulo=subtitulo
+            subtitulo=subtitulo,
         )
-
         return send_file(
             buffer,
             mimetype="application/pdf",
@@ -77,7 +73,6 @@ def register(bp):
     @login_required
     def modelos():
         secciones, subtitulo = contenido_modelos()
-
         return render_template(
             "ayuda/documento.html",
             titulo="Teoría de los modelos",
@@ -91,13 +86,11 @@ def register(bp):
     @login_required
     def modelos_pdf():
         secciones, subtitulo = contenido_modelos()
-
         buffer = generar_pdf_documento(
             "Teoría de los modelos",
             secciones,
-            subtitulo=subtitulo
+            subtitulo=subtitulo,
         )
-
         return send_file(
             buffer,
             mimetype="application/pdf",
@@ -112,7 +105,6 @@ def register(bp):
     @admin_required
     def sistema():
         secciones, subtitulo = contenido_sistema()
-
         return render_template(
             "ayuda/documento.html",
             titulo="Documentación técnica del sistema",
@@ -127,16 +119,15 @@ def register(bp):
     def sistema_pdf():
         secciones, subtitulo = contenido_sistema()
         usuario = usuario_actual()
-
         buffer = generar_pdf_documento(
             "Documentación técnica del sistema",
             secciones,
             subtitulo=subtitulo,
             generado_para=(
-                f"Documento confidencial - generado para {usuario['username']}"
+                f"Documento confidencial - generado para "
+                f"{usuario['username']}"
             ),
         )
-
         return send_file(
             buffer,
             mimetype="application/pdf",
