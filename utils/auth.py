@@ -8,6 +8,7 @@ de datos real.
 import os
 import json
 import re
+import time
 import threading
 import logging
 from functools import wraps
@@ -37,13 +38,51 @@ def _cargar_usuarios():
 
 
 def _guardar_usuarios(usuarios):
+    """
+    Guarda la base de usuarios de forma atómica:
+    1. Escribe a un archivo temporal (.tmp)
+    2. Hace os.replace() para reemplazar el archivo real
+
+    En Windows, os.replace() puede fallar temporalmente con
+    PermissionError (WinError 5) si el antivirus o el indexador
+    tiene el archivo temporal bloqueado. En ese caso se reintenta
+    con un delay creciente antes de rendirse.
+    """
     os.makedirs(os.path.dirname(Config.USUARIOS_DB), exist_ok=True)
+
     # Escritura atomica: primero a un archivo temporal y despues rename,
     # para no dejar el JSON a medio escribir si el proceso se corta.
     tmp = Config.USUARIOS_DB + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(usuarios, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, Config.USUARIOS_DB)
+
+    # Reintentos para manejar el bloqueo temporal del antivirus
+    # en Windows. En Linux/Mac os.replace funciona a la primera.
+    max_intentos = 5
+    ultimo_error = None
+    for intento in range(max_intentos):
+        try:
+            os.replace(tmp, Config.USUARIOS_DB)
+            return
+        except PermissionError as e:
+            ultimo_error = e
+            if intento < max_intentos - 1:
+                # Delay creciente: 50ms, 100ms, 150ms, 200ms
+                time.sleep(0.05 * (intento + 1))
+                logger.warning(
+                    "os.replace falló (intento %s/%s), reintentando: %s",
+                    intento + 1,
+                    max_intentos,
+                    e,
+                )
+
+    # Si todos los reintentos fallaron, limpiar el temporal
+    try:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+    except OSError:
+        pass
+    raise ultimo_error
 
 
 def obtener_usuario_por_nombre(username):

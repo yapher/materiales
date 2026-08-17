@@ -5,11 +5,20 @@
                 <i class="bi bi-beaker"></i> Composición de la mezcla
             </h5>
 
-            <!-- Botón para abrir gráfico densidad vs. temperatura -->
-            <div class="d-flex gap-2 align-items-center">
+            <!-- Botones gráficos: ocultos hasta que haya una predicción -->
+            <div
+                id="contenedorGraficosMezcla"
+                class="d-flex gap-2 align-items-center"
+                style="display:none;"
+            >
                 <span class="text-muted small d-none d-md-inline">
-                    <i class="bi bi-graph-up-arrow"></i> Ver evolución térmica
+                    <i class="bi bi-graph-up-arrow"></i> Análisis gráficos
                 </span>
+
+                <!-- Botón: Gráfico de regresión lineal (violeta) -->
+                {% include "partials/mezclas/btn_grafico_regresion.html" %}
+
+                <!-- Botón: Gráfico densidad vs temperatura (verde) -->
                 {% include "partials/mezclas/btn_grafico_densidad.html" %}
             </div>
         </div>

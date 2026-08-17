@@ -1,5 +1,6 @@
 <!--
-Modal del gráfico densidad vs. temperatura.
+Modal del gráfico densidad vs. temperatura con regresión lineal,
+puntos de regresión en intervalos y datos reales del dataset.
 Se incluye una sola vez en index.html.
 -->
 <div
@@ -102,14 +103,40 @@ Se incluye una sola vez en index.html.
                                 <i class="bi bi-download"></i> PNG
                             </button>
                         </div>
+
+                        <div class="grafico-config-field">
+                            <label>&nbsp;</label>
+                            <button
+                                type="button"
+                                id="gdBtnPDF"
+                                class="btn btn-grafico-accion w-100"
+                            >
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </button>
+                        </div>
                     </div>
 
-                    <p class="text-muted small mt-3 mb-0">
+                    <!-- Leyenda del gráfico con texto VISIBLE -->
+                    <p class="grafico-leyenda mt-3 mb-0">
                         <i class="bi bi-info-circle"></i>
-                        Se predice la densidad a cada temperatura del rango manteniendo
-                        la composición actual de la mezcla fija.
+                        <strong>● Línea verde:</strong> densidad predicha por el modelo.
+                        <strong>┄ Línea violeta punteada:</strong> regresión lineal (ρ = m·T + b).
+                        <strong>■ Cuadrados rojos:</strong> valores de la regresión en cada intervalo.
+                        <strong>▲ Triángulos amarillos:</strong> datos reales del dataset con la
+                        misma composición (hover para ver la fila completa).
                         Máximo 500 puntos por consulta.
                     </p>
+                </div>
+
+                <!-- Composición de la mezcla analizada -->
+                <div class="grafico-composicion" id="gdComposicion">
+                    <div class="grafico-composicion-titulo">
+                        <i class="bi bi-beaker"></i>
+                        Composición del polvo colador analizado
+                    </div>
+                    <div class="grafico-composicion-chips" id="gdComposicionChips">
+                        <!-- Se llena dinámicamente desde JS -->
+                    </div>
                 </div>
 
                 <!-- Wrapper del gráfico -->

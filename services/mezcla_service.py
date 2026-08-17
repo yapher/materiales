@@ -38,6 +38,10 @@ from .modeling.training import (
 from .modeling.prediction import predecir_service
 from .modeling.status import estado_service
 from .modeling.grafico import generar_grafico_densidad
+from .modeling.regresion import (
+    generar_grafico_regresion,
+    listar_variables_regresion,
+)
 
 __all__ = [
     # state
@@ -70,4 +74,7 @@ __all__ = [
     "estado_service",
     # grafico
     "generar_grafico_densidad",
+    # regresion
+    "generar_grafico_regresion",
+    "listar_variables_regresion",
 ]

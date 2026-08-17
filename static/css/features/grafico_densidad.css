@@ -1,6 +1,7 @@
 /* ==========================================================
 features/grafico_densidad.css
-Estilos del modal y panel del gráfico densidad vs. temperatura.
+Estilos del modal y panel del gráfico densidad vs. temperatura
+con regresión lineal.
 ========================================================== */
 
 /* ---------- Botón trigger redondo ---------- */
@@ -139,6 +140,99 @@ Estilos del modal y panel del gráfico densidad vs. temperatura.
     box-shadow: 0 0 0 0.2rem rgba(136, 201, 153, 0.15);
 }
 
+/* ---------- Leyenda del gráfico (texto VISIBLE) ---------- */
+.grafico-leyenda {
+    color: #d1cbe3;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.grafico-leyenda strong {
+    color: #f1eefc;
+    font-weight: 600;
+}
+
+.grafico-leyenda i {
+    color: var(--accent);
+    margin-right: 0.3rem;
+}
+
+/* ---------- Composición de la mezcla ---------- */
+.grafico-composicion {
+    background:
+        linear-gradient(180deg, rgba(136, 201, 153, 0.04), rgba(37, 28, 61, 0.5));
+    border: 1px solid rgba(136, 201, 153, 0.20);
+    border-radius: 0.85rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.grafico-composicion-titulo {
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.grafico-composicion-titulo i {
+    color: var(--accent);
+}
+
+.grafico-composicion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.grafico-composicion-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.75rem;
+    background: #251c3d;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.65rem;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.grafico-composicion-chip:hover {
+    border-color: rgba(136, 201, 153, 0.45);
+    transform: translateY(-1px);
+}
+
+.grafico-composicion-chip-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+}
+
+.grafico-composicion-chip-elemento {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text);
+}
+
+.grafico-composicion-chip-pct {
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--accent);
+    font-family: Consolas, 'Courier New', monospace;
+}
+
+.grafico-composicion-total {
+    background: rgba(136, 201, 153, 0.10);
+    border-color: rgba(136, 201, 153, 0.35);
+}
+
+.grafico-composicion-total .grafico-composicion-chip-elemento {
+    color: var(--accent);
+}
+
 /* ---------- Contenedor del gráfico ---------- */
 .grafico-densidad-wrapper {
     position: relative;
@@ -192,6 +286,25 @@ Estilos del modal y panel del gráfico densidad vs. temperatura.
     margin: 0.15rem 0 0;
 }
 
+/* ---------- Ecuación de regresión ---------- */
+.grafico-ecuacion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    background: rgba(37, 28, 61, 0.7);
+    border: 1px solid rgba(201, 163, 242, 0.35);
+    border-radius: 0.6rem;
+    font-family: Consolas, 'Courier New', monospace;
+    color: var(--text);
+    font-size: 0.88rem;
+}
+
+.grafico-ecuacion-label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
 /* ---------- Stats cards ---------- */
 .grafico-densidad-stats {
     display: grid;
@@ -240,6 +353,22 @@ Estilos del modal y panel del gráfico densidad vs. temperatura.
 
 .grafico-stat-valor.stat-avg {
     color: #c9a3f2;
+}
+
+.grafico-stat-valor.stat-r2 {
+    color: #f2d879;
+}
+
+.grafico-stat-valor.stat-pendiente {
+    color: #7fb8e0;
+}
+
+.grafico-stat-valor.stat-real {
+    color: #f2d879;
+}
+
+.grafico-stat-valor.stat-regresion {
+    color: #e07f7f;
 }
 
 /* ---------- Loader ---------- */
@@ -343,6 +472,12 @@ Estilos del modal y panel del gráfico densidad vs. temperatura.
     }
     .grafico-densidad-stats {
         grid-template-columns: repeat(2, 1fr);
+    }
+    .grafico-composicion-chips {
+        gap: 0.35rem;
+    }
+    .grafico-composicion-chip {
+        padding: 0.3rem 0.6rem;
     }
 }
 
