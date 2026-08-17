@@ -1,24 +1,8 @@
 <div id="panelComposicion" class="card panel mb-4" style="display:none;">
     <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-            <h5 class="panel-titulo mb-0">
-                <i class="bi bi-beaker"></i> Composición de la mezcla
-            </h5>
-
-            <!-- Botones gráficos: OCULTOS hasta que haya una predicción -->
-            <div
-                id="contenedorGraficosMezcla"
-                class="d-flex gap-2 align-items-center"
-                style="display:none;"
-            >
-                <span class="text-muted small d-none d-md-inline">
-                    <i class="bi bi-graph-up-arrow"></i> Análisis gráficos
-                </span>
-
-                <!-- Botón: Gráfico densidad vs temperatura (verde) -->
-                {% include "partials/mezclas/btn_grafico_densidad.html" %}
-            </div>
-        </div>
+        <h5 class="panel-titulo mb-3">
+            <i class="bi bi-beaker"></i> Composición de la mezcla
+        </h5>
 
         <div class="row g-4">
             <div class="col-lg-6 d-flex flex-column justify-content-center">

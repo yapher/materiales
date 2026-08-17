@@ -462,6 +462,36 @@ con regresión lineal.
     cursor: not-allowed;
 }
 
+/* ---------- Contenedor inferior de gráficos (post-predicción) ---------- */
+.contenedor-graficos-inferior {
+    border-top: 1px dashed var(--panel-border);
+    background:
+        linear-gradient(180deg, rgba(136, 201, 153, 0.03), transparent 60%);
+    animation: aparecerGraficosInferior 0.4s ease;
+}
+
+@keyframes aparecerGraficosInferior {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .contenedor-graficos-inferior .d-flex.justify-content-between {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .contenedor-graficos-inferior .btn-grafico-densidad {
+        width: 100%;
+        height: 48px;
+    }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 767.98px) {
     .grafico-densidad-canvas-container {
