@@ -1,0 +1,37 @@
+<!--
+Panel inline del gráfico densidad vs. temperatura.
+Aparece DEBAJO de los paneles R² y Predicción DESPUÉS de
+realizar una predicción. No es un modal: está integrado
+en la página.
+Controlado por IAM.actualizarVisibilidadGraficoDensidad()
+en static/js/mezclas/05-visibilidad.js.
+-->
+<div
+    id="panelGraficoDensidadInline"
+    class="card panel mb-4"
+    style="display:none;"
+>
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+            <h5 class="panel-titulo mb-0">
+                <i class="bi bi-graph-up-arrow"></i>
+                Evolución de la densidad con la temperatura
+            </h5>
+            <p class="text-muted small mb-0">
+                Predicción basada en la composición actual
+            </p>
+        </div>
+
+        {% include "partials/grafico_densidad/configuracion.html" %}
+        {% include "partials/grafico_densidad/filtros.html" %}
+        {% include "partials/grafico_densidad/composicion.html" %}
+        {% include "partials/grafico_densidad/grafico.html" %}
+
+        <!-- Stats -->
+        <div
+            class="grafico-densidad-stats"
+            id="gdStats"
+            style="display:none;"
+        ></div>
+    </div>
+</div>

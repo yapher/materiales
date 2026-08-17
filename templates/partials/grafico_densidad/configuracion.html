@@ -1,0 +1,91 @@
+<!-- Panel de configuración del rango de temperatura -->
+<div class="grafico-config-panel">
+    <div class="grafico-config-titulo">
+        <i class="bi bi-sliders"></i>
+        Parámetros del rango
+    </div>
+    <div class="grafico-config-grid">
+        <div class="grafico-config-field">
+            <label for="gdTempMin">Temperatura mínima</label>
+            <div class="input-group input-group-sm">
+                <input
+                    type="number"
+                    id="gdTempMin"
+                    class="form-control"
+                    value="1500"
+                    min="0"
+                    step="10"
+                >
+                <span class="input-group-text">K</span>
+            </div>
+        </div>
+        <div class="grafico-config-field">
+            <label for="gdTempMax">Temperatura máxima</label>
+            <div class="input-group input-group-sm">
+                <input
+                    type="number"
+                    id="gdTempMax"
+                    class="form-control"
+                    value="2000"
+                    min="1"
+                    step="10"
+                >
+                <span class="input-group-text">K</span>
+            </div>
+        </div>
+        <div class="grafico-config-field">
+            <label for="gdIntervalo">Intervalo</label>
+            <div class="input-group input-group-sm">
+                <input
+                    type="number"
+                    id="gdIntervalo"
+                    class="form-control"
+                    value="20"
+                    min="1"
+                    step="1"
+                >
+                <span class="input-group-text">K</span>
+            </div>
+        </div>
+        <div class="grafico-config-field">
+            <label>&nbsp;</label>
+            <button
+                type="button"
+                id="gdBtnGenerar"
+                class="btn btn-agregar w-100"
+            >
+                <i class="bi bi-arrow-clockwise"></i> Generar
+            </button>
+        </div>
+        <div class="grafico-config-field">
+            <label>&nbsp;</label>
+            <button
+                type="button"
+                id="gdBtnDescargar"
+                class="btn btn-grafico-accion w-100"
+            >
+                <i class="bi bi-download"></i> PNG
+            </button>
+        </div>
+        <div class="grafico-config-field">
+            <label>&nbsp;</label>
+            <button
+                type="button"
+                id="gdBtnPDF"
+                class="btn btn-grafico-accion w-100"
+            >
+                <i class="bi bi-file-earmark-pdf"></i> PDF
+            </button>
+        </div>
+    </div>
+
+    <p class="grafico-leyenda mt-3 mb-0">
+        <i class="bi bi-info-circle"></i>
+        <strong>● Línea verde:</strong> densidad predicha por el modelo.
+        <strong>┄ Línea violeta punteada:</strong> regresión lineal (ρ = m·T + b).
+        <strong>■ Cuadrados rojos:</strong> valores de la regresión en cada intervalo.
+        <strong>▲ Triángulos amarillos:</strong> datos reales del dataset con la
+        misma composición (hover para ver la fila completa).
+        Máximo 500 puntos por consulta.
+    </p>
+</div>

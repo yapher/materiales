@@ -1,0 +1,54 @@
+<!--
+Filtros de capas del gráfico.
+Por defecto se muestra SOLO la densidad predicha.
+Las otras capas se habilitan con los checkboxes:
+- gdFiltroRegresion: regresión lineal + cuadrados rojos
+- gdFiltroReales: datos reales del dataset
+Los cambios se aplican en static/js/grafico_densidad/02-filtros.js
+sin volver a consultar al backend.
+-->
+<div class="grafico-filtros-panel">
+    <div class="grafico-filtros-titulo">
+        <i class="bi bi-funnel"></i>
+        Capas del gráfico
+    </div>
+    <div class="grafico-filtros-grid">
+        <!-- Densidad predicha: siempre visible (no se puede desactivar) -->
+        <label
+            class="grafico-filtro-check filtro-activo filtro-bloqueado"
+            title="Esta capa está siempre visible"
+        >
+            <input
+                type="checkbox"
+                id="gdFiltroPredicha"
+                checked
+                disabled
+            >
+            <span
+                class="grafico-filtro-color"
+                style="background:#88c999;"
+            ></span>
+            Densidad predicha
+        </label>
+
+        <!-- Regresión lineal: desactivada por defecto -->
+        <label class="grafico-filtro-check">
+            <input type="checkbox" id="gdFiltroRegresion">
+            <span
+                class="grafico-filtro-color"
+                style="background:#c9a3f2;"
+            ></span>
+            Regresión lineal
+        </label>
+
+        <!-- Datos reales del dataset: desactivados por defecto -->
+        <label class="grafico-filtro-check">
+            <input type="checkbox" id="gdFiltroReales">
+            <span
+                class="grafico-filtro-color"
+                style="background:#f2d879;"
+            ></span>
+            Datos reales del dataset
+        </label>
+    </div>
+</div>

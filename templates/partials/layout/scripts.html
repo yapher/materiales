@@ -7,7 +7,6 @@ Chart.js para gráficos profesionales
 
 <!-- ==========================================================
 Núcleo modular de mezclas
-Reemplaza al antiguo static/js/mezclas.js
 ========================================================== -->
 <script src="{{ url_for('static', filename='js/mezclas/00-namespace.js') }}"></script>
 <script src="{{ url_for('static', filename='js/mezclas/01-format.js') }}"></script>
@@ -23,12 +22,23 @@ Reemplaza al antiguo static/js/mezclas.js
 <script src="{{ url_for('static', filename='js/mezclas/11-init.js') }}"></script>
 
 <!-- ==========================================================
+Gráfico densidad vs. temperatura (modular)
+========================================================== -->
+<script src="{{ url_for('static', filename='js/grafico_densidad/00-namespace.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/01-helpers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/02-filtros.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/03-composicion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/04-stats.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/05-grafico.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/06-backend.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/07-exportar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad/08-init.js') }}"></script>
+
+<!-- ==========================================================
 Scripts funcionales existentes
 ========================================================== -->
 <script src="{{ url_for('static', filename='js/flujo.js') }}"></script>
 <script src="{{ url_for('static', filename='js/configuracion_entrenamiento.js') }}"></script>
 <script src="{{ url_for('static', filename='js/grafico_tarta.js') }}"></script>
-<script src="{{ url_for('static', filename='js/grafico_densidad.js') }}"></script>
-<script src="{{ url_for('static', filename='js/grafico_regresion.js') }}"></script>
 
 {% block extra_js %}{% endblock %}
