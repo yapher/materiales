@@ -1,0 +1,158 @@
+<!--
+Modal del gráfico densidad vs. temperatura.
+Se incluye una sola vez en index.html.
+-->
+<div
+    class="modal fade modal-grafico-densidad"
+    id="modalGraficoDensidad"
+    tabindex="-1"
+    aria-labelledby="modalGraficoDensidadLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <!-- HEADER -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalGraficoDensidadLabel">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Densidad vs. Temperatura
+                </h5>
+                <button
+                    type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"
+                    aria-label="Cerrar"
+                ></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+
+                <!-- Panel de configuración -->
+                <div class="grafico-config-panel">
+                    <div class="grafico-config-titulo">
+                        <i class="bi bi-sliders"></i>
+                        Parámetros del rango
+                    </div>
+
+                    <div class="grafico-config-grid">
+                        <div class="grafico-config-field">
+                            <label for="gdTempMin">Temperatura mínima</label>
+                            <div class="input-group input-group-sm">
+                                <input
+                                    type="number"
+                                    id="gdTempMin"
+                                    class="form-control"
+                                    value="1500"
+                                    min="0"
+                                    step="10"
+                                >
+                                <span class="input-group-text">K</span>
+                            </div>
+                        </div>
+
+                        <div class="grafico-config-field">
+                            <label for="gdTempMax">Temperatura máxima</label>
+                            <div class="input-group input-group-sm">
+                                <input
+                                    type="number"
+                                    id="gdTempMax"
+                                    class="form-control"
+                                    value="2000"
+                                    min="1"
+                                    step="10"
+                                >
+                                <span class="input-group-text">K</span>
+                            </div>
+                        </div>
+
+                        <div class="grafico-config-field">
+                            <label for="gdIntervalo">Intervalo</label>
+                            <div class="input-group input-group-sm">
+                                <input
+                                    type="number"
+                                    id="gdIntervalo"
+                                    class="form-control"
+                                    value="20"
+                                    min="1"
+                                    step="1"
+                                >
+                                <span class="input-group-text">K</span>
+                            </div>
+                        </div>
+
+                        <div class="grafico-config-field">
+                            <label>&nbsp;</label>
+                            <button
+                                type="button"
+                                id="gdBtnGenerar"
+                                class="btn btn-agregar w-100"
+                            >
+                                <i class="bi bi-arrow-clockwise"></i> Generar
+                            </button>
+                        </div>
+
+                        <div class="grafico-config-field">
+                            <label>&nbsp;</label>
+                            <button
+                                type="button"
+                                id="gdBtnDescargar"
+                                class="btn btn-grafico-accion w-100"
+                            >
+                                <i class="bi bi-download"></i> PNG
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Se predice la densidad a cada temperatura del rango manteniendo
+                        la composición actual de la mezcla fija.
+                        Máximo 500 puntos por consulta.
+                    </p>
+                </div>
+
+                <!-- Wrapper del gráfico -->
+                <div class="grafico-densidad-wrapper" id="gdWrapper">
+                    <div class="grafico-densidad-empty">
+                        <i class="bi bi-graph-up"></i>
+                        <p class="mb-0">
+                            Ajustá los parámetros y presioná "Generar gráfico".
+                        </p>
+                    </div>
+
+                    <!-- Loader (oculto por defecto) -->
+                    <div
+                        class="grafico-densidad-loader"
+                        id="gdLoader"
+                        style="display:none;"
+                    >
+                        <div class="spinner-border" role="status"></div>
+                        <div class="grafico-densidad-loader-text">
+                            Calculando puntos del modelo…
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div
+                    class="grafico-densidad-stats"
+                    id="gdStats"
+                    style="display:none;"
+                ></div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-agregar"
+                    data-bs-dismiss="modal"
+                >
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

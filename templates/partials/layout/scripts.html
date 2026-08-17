@@ -1,6 +1,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- ==========================================================
+Chart.js para gráficos profesionales
+========================================================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- ==========================================================
 Núcleo modular de mezclas
 Reemplaza al antiguo static/js/mezclas.js
 ========================================================== -->
@@ -23,5 +28,6 @@ Scripts funcionales existentes
 <script src="{{ url_for('static', filename='js/flujo.js') }}"></script>
 <script src="{{ url_for('static', filename='js/configuracion_entrenamiento.js') }}"></script>
 <script src="{{ url_for('static', filename='js/grafico_tarta.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_densidad.js') }}"></script>
 
 {% block extra_js %}{% endblock %}
