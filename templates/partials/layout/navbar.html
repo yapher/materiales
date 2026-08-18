@@ -32,9 +32,11 @@
                 <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.index' else '' }}" href="{{ url_for('mezclas.index') }}">
                     <i class="bi bi-beaker"></i> Predicción
                 </a>
+                {% if usuario_sesion.es_admin %}
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('diagnostico.') else '' }}" href="{{ url_for('diagnostico.index') }}">
                     <i class="bi bi-clipboard2-pulse"></i> Diagnóstico
                 </a>
+                {% endif %}
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('ayuda.') else '' }}" href="{{ url_for('ayuda.index') }}">
                     <i class="bi bi-question-circle"></i> Ayuda
                 </a>
@@ -43,7 +45,9 @@
                     <i class="bi bi-sliders"></i> Admin
                 </a>
                 {% endif %}
-                <!-- DROPDOWN DE USUARIO -->
+                <!-- ============================================ -->
+                <!-- DROPDOWN DE USUARIO (submenú de perfil)      -->
+                <!-- ============================================ -->
                 <div class="nav-item dropdown">
                     <a
                         class="nav-link nav-link-usuario dropdown-toggle"
@@ -54,7 +58,7 @@
                     >
                         {% if usuario_tiene_avatar %}
                         <img
-                            src="{{ url_for('perfil.avatar') }}"
+                            src="{{ url_for('perfil.avatar') }}?t={{ range(1,999999) | random }}"
                             alt=""
                             class="avatar-navbar"
                         >

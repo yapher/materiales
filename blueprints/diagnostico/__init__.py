@@ -1,16 +1,12 @@
 """
 Blueprint de diagnóstico de datos.
-
 Este paquete reemplaza al antiguo blueprints/diagnostico.py monolítico.
-
 Mantiene exactamente el mismo nombre de blueprint y los mismos
 endpoints, para no romper:
-
 - app.py
 - templates
 - url_for(...)
 """
-
 from flask import Blueprint
 
 diagnostico_bp = Blueprint(

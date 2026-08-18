@@ -1,8 +1,7 @@
 /* ==========================================================
 layout/navbar.css
-Estilos del navbar superior y badges de navegación.
+Estilos del navbar superior, badges de navegación y avatar.
 ========================================================== */
-
 .navbar.panel {
     padding: 0.6rem 0;
     border-radius: 0;
@@ -47,4 +46,86 @@ Estilos del navbar superior y badges de navegación.
     margin-left: 0.35rem;
     text-transform: uppercase;
     vertical-align: middle;
+}
+
+/* ----------------------------------------------------------
+Avatar en navbar (pequeño)
+CRÍTICO: debe tener !important para sobreescribir
+responsive.css que tiene img { max-width: 100% }
+---------------------------------------------------------- */
+img.avatar-navbar,
+.avatar-navbar {
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    border: 1px solid var(--panel-border);
+    vertical-align: middle;
+    margin-right: 0.3rem;
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+/* ----------------------------------------------------------
+Dropdown de usuario en navbar
+---------------------------------------------------------- */
+.nav-link-usuario {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: var(--text) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: 0.65rem;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.nav-link-usuario:hover {
+    background: rgba(136, 201, 153, 0.05);
+}
+
+.navbar .dropdown-menu {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 0.7rem;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    min-width: 210px;
+    padding: 0.4rem;
+}
+
+.navbar .dropdown-item {
+    color: var(--text-muted);
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-size: 0.92rem;
+}
+
+.navbar .dropdown-item:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.navbar .dropdown-item i {
+    margin-right: 0.5rem;
+    width: 1.2rem;
+    text-align: center;
+}
+
+.navbar .dropdown-divider {
+    border-color: var(--panel-border);
+    margin: 0.3rem 0.5rem;
+}
+
+.navbar .dropdown-header {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem 0.3rem;
 }

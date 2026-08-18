@@ -2,7 +2,6 @@
 utilities/responsive.css
 Ajustes responsive/mobile para todas las vistas.
 ========================================================== */
-
 :root {
     color-scheme: dark;
 }
@@ -15,7 +14,11 @@ body {
     overflow-x: hidden;
 }
 
-img,
+/* ----------------------------------------------------------
+Imágenes responsivas — EXCEPTO avatar del navbar
+que tiene tamaño fijo de 28x28px
+---------------------------------------------------------- */
+img:not(.avatar-navbar):not(.avatar-preview),
 svg {
     max-width: 100%;
     height: auto;

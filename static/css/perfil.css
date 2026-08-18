@@ -11,16 +11,26 @@ Avatar preview (página de perfil)
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 160px;
+    height: 160px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
 }
 
+img.avatar-preview,
 .avatar-preview {
-    width: 140px;
-    height: 140px;
+    width: 140px !important;
+    height: 140px !important;
+    max-width: 140px !important;
+    max-height: 140px !important;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--panel-border);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    flex-shrink: 0;
 }
 
 .avatar-preview:hover {
@@ -40,15 +50,19 @@ Avatar preview (página de perfil)
 /* ----------------------------------------------------------
 Avatar en navbar (pequeño)
 ---------------------------------------------------------- */
+img.avatar-navbar,
 .avatar-navbar {
-    width: 28px;
-    height: 28px;
+    width: 28px !important;
+    height: 28px !important;
+    max-width: 28px !important;
+    max-height: 28px !important;
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid var(--panel-border);
     vertical-align: middle;
     margin-right: 0.3rem;
     flex-shrink: 0;
+    display: inline-block;
 }
 
 /* ----------------------------------------------------------
@@ -69,12 +83,6 @@ Dropdown de usuario en navbar
 
 .nav-link-usuario:hover {
     background: rgba(136, 201, 153, 0.05);
-}
-
-.nav-link-usuario .dropdown-toggle-icon {
-    font-size: 0.65rem;
-    opacity: 0.6;
-    margin-left: 0.2rem;
 }
 
 .navbar .dropdown-menu {
@@ -121,9 +129,17 @@ Dropdown de usuario en navbar
 Responsive
 ---------------------------------------------------------- */
 @media (max-width: 767.98px) {
+    .avatar-preview-container {
+        width: 130px;
+        height: 130px;
+    }
+
+    img.avatar-preview,
     .avatar-preview {
-        width: 110px;
-        height: 110px;
+        width: 110px !important;
+        height: 110px !important;
+        max-width: 110px !important;
+        max-height: 110px !important;
     }
 
     .avatar-placeholder {
