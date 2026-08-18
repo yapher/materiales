@@ -1,7 +1,7 @@
 """
 Tests para las rutas del módulo de mezclas/predicción.
+Actualizado: dataset global, sin datasets personales.
 """
-
 import pytest
 
 
@@ -57,7 +57,6 @@ class TestMezclasRoutes:
             "mix": sample_mix,
             "temperatura": 1500,
         })
-        # Debe devolver un error porque no hay modelo entrenado
         assert response.status_code in (400, 500)
 
     def test_dataset_view_requiere_login(self, client):
@@ -79,7 +78,7 @@ class TestMezclasRoutes:
         assert "filas" in data
 
     def test_ultima_prediccion_con_sesion(self, auth_client):
-        """La última predicción debe devolver JSON (aunque esté vacía)."""
+        """La última predicción debe devolver JSON."""
         response = auth_client.get("/mezclas/ultima_prediccion")
         assert response.status_code == 200
 
@@ -90,7 +89,6 @@ class TestMezclasAdmin:
     def test_ruta_admin_requiere_admin(self, auth_client):
         """Un usuario normal no debe poder acceder a /admin."""
         response = auth_client.get("/admin/", follow_redirects=False)
-        # Debe redirigir a mezclas (no tiene permisos)
         assert response.status_code in (301, 302, 308)
 
     def test_ruta_admin_con_admin(self, admin_client):

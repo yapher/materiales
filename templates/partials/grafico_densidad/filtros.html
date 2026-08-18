@@ -24,31 +24,46 @@ sin volver a consultar al backend.
                 checked
                 disabled
             >
+            <span class="grafico-filtro-indicador">
+                <i class="bi bi-lock-fill"></i>
+            </span>
             <span
                 class="grafico-filtro-color"
                 style="background:#88c999;"
             ></span>
-            Densidad predicha
+            <span class="grafico-filtro-texto">Densidad predicha</span>
         </label>
 
         <!-- Regresión lineal: desactivada por defecto -->
-        <label class="grafico-filtro-check">
+        <label
+            class="grafico-filtro-check"
+            title="Línea violeta punteada + cuadrados rojos"
+        >
             <input type="checkbox" id="gdFiltroRegresion">
+            <span class="grafico-filtro-indicador">
+                <i class="bi bi-check-lg"></i>
+            </span>
             <span
                 class="grafico-filtro-color"
                 style="background:#c9a3f2;"
             ></span>
-            Regresión lineal
+            <span class="grafico-filtro-texto">Regresión lineal</span>
         </label>
 
         <!-- Datos reales del dataset: desactivados por defecto -->
-        <label class="grafico-filtro-check">
+        <label
+            class="grafico-filtro-check"
+            title="Triángulos amarillos con la misma composición"
+        >
             <input type="checkbox" id="gdFiltroReales">
+            <span class="grafico-filtro-indicador">
+                <i class="bi bi-check-lg"></i>
+            </span>
             <span
                 class="grafico-filtro-color"
                 style="background:#f2d879;"
             ></span>
-            Datos reales del dataset
+            <span class="grafico-filtro-texto">Datos reales del dataset</span>
         </label>
     </div>
 </div>

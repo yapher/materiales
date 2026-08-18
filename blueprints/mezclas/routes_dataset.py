@@ -1,131 +1,174 @@
 """
-Rutas del dataset personal del usuario.
-
+Rutas del dataset global.
 Incluye:
-- vista de mi dataset
-- listado de filas
-- editar fila
-- borrar fila
-- exportar fila a PDF
-"""
+- vista del dataset (todos los usuarios logueados)
+- listado de filas (todos)
+- editar fila (SOLO ADMIN)
+- borrar fila (SOLO ADMIN)
+- agregar fila (SOLO ADMIN)
+- exportar fila a PDF (todos)
 
+IMPORTANTE:
+- Si el admin edita/borra/agrega, se borra el modelo entrenado.
+- Los usuarios no-admin solo pueden ver y exportar a PDF.
+"""
 from flask import (
     render_template,
     request,
     jsonify,
     send_file,
 )
-
 from services.excel_service import (
-    listar_filas_usuario,
-    eliminar_fila_usuario,
-    obtener_fila_usuario,
-    actualizar_fila_usuario,
+    listar_filas_maestro,
+    eliminar_fila_maestro,
+    obtener_fila_maestro,
+    actualizar_fila_maestro,
+    agregar_fila_maestro,
 )
-
+from services.mezcla_service import reset_modelo_service
 from services.pdf_service import generar_pdf_fila_dataset
-
 from utils import (
     manejar_errores_json,
     login_required,
     login_required_json,
+    admin_required_json,
     usuario_actual,
 )
 
 
 def register(bp):
     """
-    Registra las rutas del dataset personal.
+    Registra las rutas del dataset global.
     """
 
     # ==========================================================
-    # VISTA: MI DATASET
+    # VISTA: DATASET (todos los usuarios)
     # ==========================================================
     @bp.route("/mezclas/dataset")
     @login_required
     def dataset_view():
         """
-        Página donde el usuario ve su dataset personal.
+        Página donde se ve el dataset global.
+        El admin puede editar; los demás solo ver y exportar.
         """
-        return render_template("mi_dataset.html")
+        usuario = usuario_actual()
+        es_admin = usuario.get("es_admin", False) if usuario else False
+        return render_template(
+            "dataset.html",
+            es_admin=es_admin,
+        )
 
     # ==========================================================
-    # LISTAR FILAS
+    # LISTAR FILAS (todos los usuarios logueados)
     # ==========================================================
     @bp.route("/mezclas/dataset/filas")
     @login_required_json
     @manejar_errores_json
     def dataset_filas():
         """
-        Devuelve columnas y filas del dataset personal.
+        Devuelve columnas y filas del dataset global.
         """
-        return jsonify(listar_filas_usuario())
+        usuario = usuario_actual()
+        es_admin = usuario.get("es_admin", False) if usuario else False
+        data = listar_filas_maestro()
+        data["es_admin"] = es_admin
+        return jsonify(data)
 
     # ==========================================================
-    # EDITAR FILA
+    # EDITAR FILA (SOLO ADMIN)
     # ==========================================================
     @bp.route(
         "/mezclas/dataset/filas/<int:indice>",
         methods=["PUT"]
     )
-    @login_required_json
+    @admin_required_json
     @manejar_errores_json
     def dataset_editar_fila(indice):
         """
-        Actualiza una fila del dataset personal.
+        Actualiza una fila del dataset global.
+        Borra el modelo entrenado del admin.
         """
         valores = request.get_json(silent=True) or {}
+        actualizar_fila_maestro(indice, valores)
 
-        actualizar_fila_usuario(
-            indice,
-            valores
-        )
+        # Borrar el modelo: el dataset cambió
+        reset_modelo_service()
 
         return jsonify({
             "ok": True,
-            "mensaje": "Fila actualizada"
+            "mensaje": (
+                "Fila actualizada. El modelo fue eliminado, "
+                "reentrená para generar uno nuevo."
+            ),
         })
 
     # ==========================================================
-    # BORRAR FILA
+    # BORRAR FILA (SOLO ADMIN)
     # ==========================================================
     @bp.route(
         "/mezclas/dataset/filas/<int:indice>",
         methods=["DELETE"]
     )
-    @login_required_json
+    @admin_required_json
     @manejar_errores_json
     def dataset_borrar_fila(indice):
         """
-        Elimina una fila del dataset personal.
+        Elimina una fila del dataset global.
+        Borra el modelo entrenado del admin.
         """
-        eliminar_fila_usuario(indice)
+        eliminar_fila_maestro(indice)
+
+        # Borrar el modelo: el dataset cambió
+        reset_modelo_service()
 
         return jsonify({
             "ok": True,
             "mensaje": (
-                "Fila eliminada de tu dataset. "
-                "Reentrená el modelo si ya lo habías "
-                "entrenado con ella."
+                "Fila eliminada del dataset. El modelo fue eliminado, "
+                "reentrená para generar uno nuevo."
             ),
         })
 
     # ==========================================================
-    # EXPORTAR FILA A PDF
+    # AGREGAR FILA (SOLO ADMIN)
+    # ==========================================================
+    @bp.route("/mezclas/dataset/filas", methods=["POST"])
+    @admin_required_json
+    @manejar_errores_json
+    def dataset_agregar_fila():
+        """
+        Agrega una fila al dataset global.
+        Borra el modelo entrenado del admin.
+        """
+        valores = request.get_json(silent=True) or {}
+        agregar_fila_maestro(valores)
+
+        # Borrar el modelo: el dataset cambió
+        reset_modelo_service()
+
+        return jsonify({
+            "ok": True,
+            "mensaje": (
+                "Fila agregada. El modelo fue eliminado, "
+                "reentrená para generar uno nuevo."
+            ),
+        })
+
+    # ==========================================================
+    # EXPORTAR FILA A PDF (todos los usuarios)
     # ==========================================================
     @bp.route("/mezclas/dataset/filas/<int:indice>/pdf")
     @login_required
     @manejar_errores_json
     def dataset_fila_pdf(indice):
         """
-        Genera un PDF con una fila del dataset personal.
+        Genera un PDF con una fila del dataset global.
+        Disponible para todos los usuarios.
         """
-        columnas, fila = obtener_fila_usuario(indice)
-
+        columnas, fila = obtener_fila_maestro(indice)
         usuario = usuario_actual()
-
         buffer = generar_pdf_fila_dataset(
-            "Fila de mi dataset",
+            "Fila del dataset",
             indice,
             columnas,
             fila["valores"],
@@ -133,7 +176,6 @@ def register(bp):
             motivo=fila["motivo"],
             generado_para=usuario["username"] if usuario else None,
         )
-
         return send_file(
             buffer,
             mimetype="application/pdf",

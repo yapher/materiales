@@ -14,23 +14,19 @@
         if (typeof window.confirmarModerno === "function") {
             return window.confirmarModerno(mensaje, titulo);
         }
-
         return Promise.resolve(window.confirm(mensaje));
     }
 
     function initDatasetTabla(container) {
         const urlBase = container.getAttribute("data-url-base") || "";
-
         const cabeceraId = container.getAttribute("data-cabecera-id");
         const cuerpoId = container.getAttribute("data-cuerpo-id");
-
         const mensajeBoxId = container.getAttribute("data-mensaje-id");
         const mensajeTextoId = container.getAttribute("data-mensaje-texto-id");
-
         const totalId = container.getAttribute("data-total-id");
-
         const modalId = container.getAttribute("data-modal-id");
         const motivoId = container.getAttribute("data-motivo-id");
+        const esAdmin = container.getAttribute("data-es-admin") === "true";
 
         const cabecera = document.getElementById(cabeceraId);
         const cuerpo = document.getElementById(cuerpoId);
@@ -46,13 +42,8 @@
         function setMensaje(texto, esError = false) {
             const box = document.getElementById(mensajeBoxId);
             const span = document.getElementById(mensajeTextoId);
-
-            if (!box || !span) {
-                return;
-            }
-
+            if (!box || !span) return;
             span.textContent = texto;
-
             box.style.borderColor = esError ? "#e07f7f" : "";
             box.style.color = esError ? "#e0a97f" : "";
             box.style.display = texto ? "block" : "none";
@@ -60,30 +51,19 @@
 
         function actualizarTotal() {
             const totalEl = document.getElementById(totalId);
-
-            if (!totalEl) {
-                return;
-            }
-
+            if (!totalEl) return;
             totalEl.textContent = String(filas.length);
         }
 
         function mostrarMotivo(indice) {
             const fila = filas.find(f => f.indice === indice);
-
-            if (!fila) {
-                return;
-            }
-
+            if (!fila) return;
             const motivoEl = document.getElementById(motivoId);
-
             if (motivoEl) {
                 motivoEl.textContent = fila.motivo || "Sin detalle.";
             }
-
             if (modalId && typeof bootstrap !== "undefined") {
                 const modalEl = document.getElementById(modalId);
-
                 if (modalEl) {
                     const modal = new bootstrap.Modal(modalEl);
                     modal.show();
@@ -95,20 +75,17 @@
             fetch(urlBase)
                 .then(async respuesta => {
                     const data = await respuesta.json().catch(() => ({}));
-
                     if (!respuesta.ok || data.error) {
                         throw new Error(
                             data.error || `Error ${respuesta.status}`
                         );
                     }
-
                     return data;
                 })
                 .then(data => {
                     columnas = data.columnas || [];
                     filas = data.filas || [];
                     editandoIndice = null;
-
                     renderTabla();
                 })
                 .catch(error => {
@@ -119,12 +96,17 @@
         function renderTabla() {
             actualizarTotal();
 
+            // Columna de acciones según rol
+            const colAcciones = esAdmin
+                ? '<th>Acciones</th>'
+                : '<th style="width:60px;">PDF</th>';
+
             cabecera.innerHTML = `
                 <tr>
                     <th style="width:52px;">#</th>
                     <th title="Fila con datos inconsistentes"></th>
                     ${columnas.map(c => `<th>${escaparHtml(c)}</th>`).join("")}
-                    <th>Acciones</th>
+                    ${colAcciones}
                 </tr>
             `;
 
@@ -136,36 +118,32 @@
                         </td>
                     </tr>
                 `;
-
                 return;
             }
 
             cuerpo.innerHTML = filas.map((fila, indiceVisual) => {
                 const numeroFila = indiceVisual + 1;
                 const editando = editandoIndice === fila.indice;
-
                 const advertencia = fila.inconsistente
                     ? `
-                        <span
-                            class="chip-advertencia"
-                            data-accion="motivo"
-                            data-indice="${fila.indice}"
-                            title="Ver detalle"
-                        >
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                        </span>
+                    <span
+                        class="chip-advertencia"
+                        data-accion="motivo"
+                        data-indice="${fila.indice}"
+                        title="Ver detalle"
+                    >
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </span>
                     `
                     : "";
 
                 const celdas = columnas.map(columna => {
                     const valor = fila.valores[columna];
-
-                    if (editando) {
+                    if (editando && esAdmin) {
                         const valorInput =
                             valor === null || valor === undefined
                                 ? ""
                                 : escaparHtml(valor);
-
                         return `
                             <td>
                                 <input
@@ -179,54 +157,65 @@
                             </td>
                         `;
                     }
-
                     const valorVisible =
                         valor === null || valor === undefined
                             ? '<span class="text-muted">—</span>'
                             : escaparHtml(valor);
-
                     return `<td>${valorVisible}</td>`;
                 }).join("");
 
-                const acciones = editando
-                    ? `
-                        <button
-                            class="btn-fila-accion accion-guardar"
-                            data-accion="guardar"
-                            data-indice="${fila.indice}"
-                            title="Guardar"
-                        >
-                            <i class="bi bi-check-lg"></i>
-                        </button>
-
-                        <button
-                            class="btn-fila-accion accion-cancelar"
-                            data-accion="cancelar"
-                            data-indice="${fila.indice}"
-                            title="Cancelar"
-                        >
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    `
-                    : `
-                        <button
-                            class="btn-fila-accion accion-editar"
-                            data-accion="editar"
-                            data-indice="${fila.indice}"
-                            title="Editar"
-                        >
-                            <i class="bi bi-pencil"></i>
-                        </button>
-
-                        <button
-                            class="btn-fila-accion accion-borrar"
-                            data-accion="borrar"
-                            data-indice="${fila.indice}"
-                            title="Eliminar"
-                        >
-                            <i class="bi bi-trash"></i>
-                        </button>
-
+                // Acciones según rol
+                let acciones = "";
+                if (esAdmin) {
+                    if (editando) {
+                        acciones = `
+                            <button
+                                class="btn-fila-accion accion-guardar"
+                                data-accion="guardar"
+                                data-indice="${fila.indice}"
+                                title="Guardar"
+                            >
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button
+                                class="btn-fila-accion accion-cancelar"
+                                data-accion="cancelar"
+                                data-indice="${fila.indice}"
+                                title="Cancelar"
+                            >
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        `;
+                    } else {
+                        acciones = `
+                            <button
+                                class="btn-fila-accion accion-editar"
+                                data-accion="editar"
+                                data-indice="${fila.indice}"
+                                title="Editar"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button
+                                class="btn-fila-accion accion-borrar"
+                                data-accion="borrar"
+                                data-indice="${fila.indice}"
+                                title="Eliminar"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <a
+                                class="btn-fila-accion accion-pdf"
+                                href="${urlBase}/${fila.indice}/pdf"
+                                title="Exportar a PDF"
+                            >
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </a>
+                        `;
+                    }
+                } else {
+                    // No-admin: solo exportar a PDF
+                    acciones = `
                         <a
                             class="btn-fila-accion accion-pdf"
                             href="${urlBase}/${fila.indice}/pdf"
@@ -235,6 +224,7 @@
                             <i class="bi bi-file-earmark-pdf"></i>
                         </a>
                     `;
+                }
 
                 const claseFila = fila.inconsistente
                     ? "fila-inconsistente"
@@ -256,13 +246,12 @@
         }
 
         function editarFila(indice) {
+            if (!esAdmin) return;
             editandoIndice = indice;
             renderTabla();
-
             const primerInput = container.querySelector(
                 `tr[data-fila="${indice}"] input`
             );
-
             if (primerInput) {
                 primerInput.focus();
             }
@@ -274,29 +263,22 @@
         }
 
         function guardarFila(indice) {
+            if (!esAdmin) return;
             const filaTr = container.querySelector(
                 `tr[data-fila="${indice}"]`
             );
-
-            if (!filaTr) {
-                return;
-            }
+            if (!filaTr) return;
 
             const inputs = filaTr.querySelectorAll("input[data-col]");
-
             const valores = {};
-
             inputs.forEach(input => {
                 const columna = input.dataset.col;
                 const crudo = input.value.trim();
-
                 if (crudo === "") {
                     valores[columna] = null;
                     return;
                 }
-
                 const numero = Number(crudo);
-
                 if (Number.isFinite(numero)) {
                     valores[columna] = numero;
                 } else {
@@ -305,7 +287,6 @@
             });
 
             setMensaje("Guardando cambios...");
-
             fetch(`${urlBase}/${indice}`, {
                 method: "PUT",
                 headers: {
@@ -315,13 +296,11 @@
             })
                 .then(async respuesta => {
                     const data = await respuesta.json().catch(() => ({}));
-
                     if (!respuesta.ok || data.error) {
                         throw new Error(
                             data.error || `Error ${respuesta.status}`
                         );
                     }
-
                     return data;
                 })
                 .then(data => {
@@ -334,28 +313,23 @@
         }
 
         function borrarFila(indice) {
+            if (!esAdmin) return;
             confirmar(
-                "¿Seguro que querés eliminar esta fila?",
+                "¿Seguro que querés eliminar esta fila? Se borrará el modelo entrenado.",
                 "Eliminar fila"
             ).then(ok => {
-                if (!ok) {
-                    return;
-                }
-
+                if (!ok) return;
                 setMensaje("Eliminando fila...");
-
                 fetch(`${urlBase}/${indice}`, {
                     method: "DELETE"
                 })
                     .then(async respuesta => {
                         const data = await respuesta.json().catch(() => ({}));
-
                         if (!respuesta.ok || data.error) {
                             throw new Error(
                                 data.error || `Error ${respuesta.status}`
                             );
                         }
-
                         return data;
                     })
                     .then(data => {
@@ -368,12 +342,37 @@
             });
         }
 
+        function agregarFila() {
+            if (!esAdmin) return;
+            setMensaje("Agregando fila vacía...");
+            fetch(urlBase, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({})
+            })
+                .then(async respuesta => {
+                    const data = await respuesta.json().catch(() => ({}));
+                    if (!respuesta.ok || data.error) {
+                        throw new Error(
+                            data.error || `Error ${respuesta.status}`
+                        );
+                    }
+                    return data;
+                })
+                .then(data => {
+                    setMensaje(data.mensaje || "Fila agregada");
+                    cargarTabla();
+                })
+                .catch(error => {
+                    setMensaje(error.message, true);
+                });
+        }
+
         container.addEventListener("click", function (evento) {
             const elemento = evento.target.closest("[data-accion]");
-
-            if (!elemento || !container.contains(elemento)) {
-                return;
-            }
+            if (!elemento || !container.contains(elemento)) return;
 
             const accion = elemento.getAttribute("data-accion");
 
@@ -383,14 +382,17 @@
                 return;
             }
 
+            if (accion === "agregar-fila") {
+                evento.preventDefault();
+                agregarFila();
+                return;
+            }
+
             const indice = parseInt(
                 elemento.getAttribute("data-indice"),
                 10
             );
-
-            if (Number.isNaN(indice)) {
-                return;
-            }
+            if (Number.isNaN(indice)) return;
 
             evento.preventDefault();
 

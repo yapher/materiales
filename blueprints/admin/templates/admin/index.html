@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Admin - Polvos Coladores{% endblock %}
-
 {% block content %}
 <div
     id="adminApp"
@@ -20,10 +18,9 @@
     </div>
 
     <div class="d-flex flex-wrap gap-2 justify-content-center mb-4">
-        <a href="{{ url_for('admin.dataset') }}" class="btn btn-accion">
+        <a href="{{ url_for('mezclas.dataset_view') }}" class="btn btn-accion">
             <i class="bi bi-table"></i> Administrar Dataset
         </a>
-
         <a href="{{ url_for('admin.usuarios') }}" class="btn btn-accion">
             <i class="bi bi-people"></i> Administrar Usuarios
         </a>
@@ -34,11 +31,9 @@
             <h5 class="panel-titulo">
                 <i class="bi bi-activity"></i> Estado actual
             </h5>
-
             <div id="estadoBox" class="mb-3 text-muted">
                 Cargando estado...
             </div>
-
             <div class="d-flex gap-2 flex-wrap align-items-center">
                 <input
                     type="file"
@@ -46,25 +41,20 @@
                     accept=".xlsx,.xlsm"
                     hidden
                 >
-
                 <button id="btnSubirDataset" class="btn btn-accion">
                     <i class="bi bi-upload"></i> Subir nuevo dataset
                 </button>
-
                 <button id="btnRecargarDataset" class="btn btn-accion">
                     <i class="bi bi-file-earmark-arrow-up"></i> Recargar dataset
                 </button>
-
                 <button id="btnResetModelo" class="btn btn-accion">
                     <i class="bi bi-trash"></i> Borrar modelo
                 </button>
             </div>
-
             <p class="text-muted small mt-3 mb-0">
                 <i class="bi bi-info-circle"></i>
                 Al subir un nuevo Excel se reemplaza el dataset maestro,
-                se reinicia tu dataset personal y se borra el modelo
-                entrenado actual.
+                se reinicia el dataset y se borra el modelo entrenado actual.
             </p>
         </div>
     </div>
@@ -74,7 +64,6 @@
             <h5 class="panel-titulo">
                 <i class="bi bi-bar-chart-line"></i> Último entrenamiento
             </h5>
-
             <div class="table-responsive">
                 <table class="table tabla-moderna">
                     <thead>
@@ -86,7 +75,6 @@
                     <tbody id="tablaR2Admin"></tbody>
                 </table>
             </div>
-
             <div id="r2AdminVacio" class="tabla-vacia">
                 <i class="bi bi-bar-chart"></i>
                 <p>Todavía no hay ningún modelo entrenado</p>
@@ -99,7 +87,6 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}

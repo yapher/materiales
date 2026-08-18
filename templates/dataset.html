@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Dataset - Polvos Coladores{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/features/dataset.css') }}">
+{% endblock %}
+{% block content %}
+<div
+    class="dataset-tabla-app"
+    data-url-base="{{ url_for('mezclas.dataset_filas') }}"
+    data-cabecera-id="cabeceraDataset"
+    data-cuerpo-id="cuerpoDataset"
+    data-mensaje-id="mensajeDataset"
+    data-mensaje-texto-id="mensajeDatasetTexto"
+    data-total-id="totalFilasDataset"
+    data-modal-id="modalInconsistenciaDataset"
+    data-motivo-id="motivoInconsistenciaDataset"
+    data-es-admin="{{ 'true' if es_admin else 'false' }}"
+>
+    <div class="text-center mb-5">
+        <h1 class="titulo-app">
+            <i class="bi bi-table"></i> Dataset
+        </h1>
+        <p class="subtitulo">
+            {% if es_admin %}
+                Dataset global del sistema. Podés editar, agregar y eliminar filas.
+                Cualquier modificación borra el modelo entrenado.
+            {% else %}
+                Dataset global del sistema (solo lectura).
+                Podés ver las filas y exportarlas a PDF.
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <a href="{{ url_for('mezclas.index') }}" class="btn btn-agregar">
+            <i class="bi bi-arrow-left"></i> Volver a Predicción
+        </a>
+        <div class="d-flex gap-2">
+            {% if es_admin %}
+            <button class="btn btn-accion" data-accion="agregar-fila">
+                <i class="bi bi-plus-lg"></i> Agregar fila
+            </button>
+            {% endif %}
+            <button class="btn btn-accion" data-accion="actualizar">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
+            </button>
+        </div>
+    </div>
+
+    <div id="mensajeDataset" class="mensaje-box mb-3" style="display:none;">
+        <span id="mensajeDatasetTexto"></span>
+    </div>
+
+    {% include "partials/dataset/dataset_tabla.html" %}
+    {% include "partials/dataset/modal_inconsistencia_dataset.html" %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dataset_tabla.js') }}"></script>
+{% endblock %}

@@ -1,28 +1,19 @@
 """
-Archivos de dataset por usuario.
+Archivos de dataset.
+Ya NO se crean copias personales por usuario.
+El dataset es único y global (el maestro).
+Se mantiene el módulo por compatibilidad de imports.
 """
+import logging
 
-import os
-import shutil
-
-from config import Config
-from utils import obtener_user_id, archivo_dataset_usuario
+logger = logging.getLogger(__name__)
 
 
 def inicializar_dataset_usuario(user_id=None):
     """
-    Crea el dataset personal del usuario si todavía no existe.
-
-    Copia el dataset maestro definido en Config.ARCHIVO_DATASET
-    hacia data/users/<usuario>/dataset.xlsx.
+    Ya no se inicializa un dataset por usuario.
+    Se devuelve la ruta del dataset maestro.
+    Se mantiene la firma de la función por compatibilidad.
     """
-    user_id = user_id or obtener_user_id()
-    archivo = archivo_dataset_usuario(user_id)
-
-    if not os.path.exists(archivo):
-        shutil.copy(
-            Config.ARCHIVO_DATASET,
-            archivo
-        )
-
-    return archivo
+    from config import Config
+    return Config.ARCHIVO_DATASET

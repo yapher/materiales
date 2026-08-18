@@ -1,12 +1,9 @@
 <div id="flujoPasos" class="card panel flujo-panel mb-4">
     <div class="card-body">
-
         <h5 class="panel-titulo flujo-titulo-principal">
             <i class="bi bi-signpost-split"></i> Camino del modelo
         </h5>
-
         <div class="flujo-contenedor">
-
             <!-- PASO 1: DATASET -->
             <div class="flujo-paso" id="pasoDataset">
                 <div class="flujo-nodo">
@@ -14,25 +11,20 @@
                         <i class="bi bi-file-earmark-spreadsheet"></i>
                     </div>
                 </div>
-
                 <div class="flujo-info">
                     <div class="flujo-step-badge">Paso 1</div>
                     <div class="flujo-titulo">Dataset</div>
-
                     <div class="flujo-descripcion" id="descripcionDataset">
                         Cargando automáticamente...
                     </div>
-
                     <div class="flujo-acciones">
                         <a href="{{ url_for('mezclas.dataset_view') }}" class="btn btn-agregar btn-sm">
-                            <i class="bi bi-table"></i> Ver mi dataset
+                            <i class="bi bi-table"></i> Ver dataset
                         </a>
                     </div>
                 </div>
             </div>
-
             <div class="flujo-conector" id="conectorDatasetEntrenamiento"></div>
-
             <!-- PASO 2: ENTRENAMIENTO -->
             <div class="flujo-paso" id="pasoEntrenamiento">
                 <div class="flujo-nodo">
@@ -40,15 +32,12 @@
                         <i class="bi bi-gear-wide-connected"></i>
                     </div>
                 </div>
-
                 <div class="flujo-info">
                     <div class="flujo-step-badge">Paso 2</div>
                     <div class="flujo-titulo">Entrenamiento</div>
-
                     <div class="flujo-descripcion" id="descripcionEntrenamiento">
                         Primero se debe cargar el dataset.
                     </div>
-
                     <div class="flujo-acciones d-flex align-items-center gap-2">
                         <button
                             type="button"
@@ -59,12 +48,10 @@
                         >
                             <i class="bi bi-gear-fill"></i>
                         </button>
-
                         <button id="btnEntrenar" class="btn btn-accion btn-sm" onclick="entrenarModelo()" disabled>
                             <i class="bi bi-gear-wide-connected"></i> Modelar
                         </button>
                     </div>
-
                     <div id="progresoEntrenamiento" class="mt-3" style="display:none;">
                         <div class="progreso-entrenamiento">
                             <div class="progreso-entrenamiento-bar" id="barraProgreso">0%</div>
@@ -72,9 +59,7 @@
                     </div>
                 </div>
             </div>
-
             <div class="flujo-conector" id="conectorEntrenamientoPrediccion"></div>
-
             <!-- PASO 3: PREDICCIÓN -->
             <div class="flujo-paso" id="pasoPrediccion">
                 <div class="flujo-nodo">
@@ -82,18 +67,14 @@
                         <i class="bi bi-graph-up-arrow"></i>
                     </div>
                 </div>
-
                 <div class="flujo-info">
                     <div class="flujo-step-badge">Paso 3</div>
                     <div class="flujo-titulo">Predicción</div>
-
                     <div class="flujo-descripcion" id="descripcionPrediccion">
                         Se habilita cuando el modelo está entrenado.
                     </div>
                 </div>
             </div>
-
         </div>
-
     </div>
 </div>

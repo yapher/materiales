@@ -1,7 +1,7 @@
 /* ==========================================================
 features/grafico_densidad.css
-Estilos del modal y panel del gráfico densidad vs. temperatura
-con regresión lineal.
+Estilos del panel del gráfico densidad vs. temperatura
+con regresión lineal y filtros de capas.
 ========================================================== */
 
 /* ---------- Botón trigger redondo ---------- */
@@ -45,7 +45,7 @@ con regresión lineal.
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
 }
 
-/* ---------- Modal del gráfico ---------- */
+/* ---------- Modal del gráfico (legacy) ---------- */
 .modal-grafico-densidad .modal-content {
     background:
         radial-gradient(circle at top right, rgba(136, 201, 153, 0.08), transparent 30%),
@@ -138,6 +138,151 @@ con regresión lineal.
 .grafico-config-field .form-control:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 0.2rem rgba(136, 201, 153, 0.15);
+}
+
+/* ==========================================================
+FILTROS DE CAPAS DEL GRÁFICO
+Mismo lenguaje visual que las tarjetas de variables de
+configuracion_entrenamiento.css: chip con indicador circular
+que se rellena con el accent al activarse.
+========================================================== */
+.grafico-filtros-panel {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(37, 28, 61, 0.4));
+    border: 1px solid var(--panel-border);
+    border-radius: 0.85rem;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+}
+
+.grafico-filtros-titulo {
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.grafico-filtros-titulo i {
+    color: var(--accent);
+}
+
+.grafico-filtros-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.grafico-filtro-check {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.05rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+        #251c3d;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.8rem;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition:
+        transform 0.16s ease,
+        border-color 0.16s ease,
+        box-shadow 0.16s ease,
+        background 0.16s ease;
+    user-select: none;
+}
+
+.grafico-filtro-check:hover {
+    transform: translateY(-1px);
+    border-color: rgba(136, 201, 153, 0.45);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+/* Checkbox nativo oculto: se usa el indicador custom */
+.grafico-filtro-check input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* Indicador circular (estilo variable-toggle-check) */
+.grafico-filtro-indicador {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
+    color: transparent;
+    font-size: 0.8rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition:
+        background 0.16s ease,
+        border-color 0.16s ease,
+        color 0.16s ease,
+        transform 0.16s ease;
+}
+
+.grafico-filtro-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+}
+
+.grafico-filtro-texto {
+    color: var(--text);
+}
+
+/* ---------- Estado activo ---------- */
+.grafico-filtro-check.filtro-activo {
+    border-color: var(--accent);
+    background:
+        linear-gradient(180deg, rgba(136, 201, 153, 0.14), rgba(136, 201, 153, 0.05)),
+        #223228;
+    box-shadow:
+        0 0 0 1px rgba(136, 201, 153, 0.22),
+        0 12px 28px rgba(0, 0, 0, 0.20),
+        0 0 24px rgba(136, 201, 153, 0.10);
+}
+
+.grafico-filtro-check.filtro-activo .grafico-filtro-indicador {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #14101f;
+    transform: scale(1.05);
+}
+
+/* ---------- Capa siempre visible (Densidad predicha) ---------- */
+.grafico-filtro-check.filtro-bloqueado {
+    cursor: default;
+    border-color: rgba(136, 201, 153, 0.55);
+}
+
+.grafico-filtro-check.filtro-bloqueado:hover {
+    transform: none;
+    box-shadow:
+        0 0 0 1px rgba(136, 201, 153, 0.22),
+        0 12px 28px rgba(0, 0, 0, 0.20),
+        0 0 24px rgba(136, 201, 153, 0.10);
+}
+
+/* Accesibilidad: foco visible al navegar con teclado */
+.grafico-filtro-check input[type="checkbox"]:focus-visible ~ .grafico-filtro-indicador {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 /* ---------- Leyenda del gráfico (texto VISIBLE) ---------- */
@@ -462,57 +607,43 @@ con regresión lineal.
     cursor: not-allowed;
 }
 
-/* ---------- Contenedor inferior de gráficos (post-predicción) ---------- */
-.contenedor-graficos-inferior {
-    border-top: 1px dashed var(--panel-border);
-    background:
-        linear-gradient(180deg, rgba(136, 201, 153, 0.03), transparent 60%);
-    animation: aparecerGraficosInferior 0.4s ease;
-}
-
-@keyframes aparecerGraficosInferior {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@media (max-width: 767.98px) {
-    .contenedor-graficos-inferior .d-flex.justify-content-between {
-        flex-direction: column;
-        align-items: stretch !important;
-    }
-    .contenedor-graficos-inferior .btn-grafico-densidad {
-        width: 100%;
-        height: 48px;
-    }
-}
-
 /* ---------- Responsive ---------- */
 @media (max-width: 767.98px) {
     .grafico-densidad-canvas-container {
         height: 280px;
     }
+
     .grafico-config-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+
     .grafico-densidad-stats {
         grid-template-columns: repeat(2, 1fr);
     }
+
     .grafico-composicion-chips {
         gap: 0.35rem;
     }
+
     .grafico-composicion-chip {
         padding: 0.3rem 0.6rem;
+    }
+
+    .grafico-filtro-check {
+        flex: 1 1 100%;
     }
 }
 
 @media (max-width: 480px) {
     .grafico-config-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- Accesibilidad: reducir movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .grafico-filtro-check,
+    .grafico-filtro-indicador {
+        transition: none;
     }
 }

@@ -8,6 +8,17 @@ if (!GD) {
 
 /*
 Estadísticas del gráfico y ecuación de regresión.
+
+Visibilidad de las tarjetas según los filtros (02-filtros.js):
+- Mín / Máx / Promedio / Puntos predichos: SIEMPRE visibles.
+- R² del ajuste, Pendiente y Puntos regresión: solo con la capa
+  "Regresión lineal" activada (gdFiltroRegresion).
+- Datos reales: solo con la capa "Datos reales del dataset"
+  activada (gdFiltroReales).
+
+Como renderStats se ejecuta dentro de renderChart, y renderChart
+se dispara cada vez que cambia un filtro, las tarjetas se
+actualizan automáticamente sin lógica extra.
 */
 
 GD.renderStats = function (data) {
@@ -18,11 +29,16 @@ GD.renderStats = function (data) {
 
     const stats = data.stats;
     const reg = data.regresion;
+    const filtros = GD.state.filtros;
     const cantidadReales = (data.puntos_reales || []).length;
     const cantidadRegIntervalos =
         (data.puntos_regresion_intervalos || []).length;
 
     cont.style.display = "";
+
+    // ------------------------------------------------------
+    // Stats base: siempre visibles
+    // ------------------------------------------------------
     let html = `
         <div class="grafico-stat-card">
             <div class="grafico-stat-label">Mínima</div>
@@ -42,29 +58,41 @@ GD.renderStats = function (data) {
         </div>
     `;
 
-    if (reg) {
+    // ------------------------------------------------------
+    // Stats de regresión: solo con gdFiltroRegresion activo
+    // ------------------------------------------------------
+    if (filtros.regresion) {
+        if (reg) {
+            html += `
+                <div class="grafico-stat-card">
+                    <div class="grafico-stat-label">R² del ajuste</div>
+                    <div class="grafico-stat-valor stat-r2">${GD.formatearNumero(reg.r2, 4)}</div>
+                </div>
+                <div class="grafico-stat-card">
+                    <div class="grafico-stat-label">Pendiente</div>
+                    <div class="grafico-stat-valor stat-pendiente">${GD.formatearNumero(reg.pendiente, 4)}</div>
+                </div>
+            `;
+        }
         html += `
             <div class="grafico-stat-card">
-                <div class="grafico-stat-label">R² del ajuste</div>
-                <div class="grafico-stat-valor stat-r2">${GD.formatearNumero(reg.r2, 4)}</div>
-            </div>
-            <div class="grafico-stat-card">
-                <div class="grafico-stat-label">Pendiente</div>
-                <div class="grafico-stat-valor stat-pendiente">${GD.formatearNumero(reg.pendiente, 4)}</div>
+                <div class="grafico-stat-label">Puntos regresión</div>
+                <div class="grafico-stat-valor stat-regresion">${cantidadRegIntervalos}</div>
             </div>
         `;
     }
 
-    html += `
-        <div class="grafico-stat-card">
-            <div class="grafico-stat-label">Puntos regresión</div>
-            <div class="grafico-stat-valor stat-regresion">${cantidadRegIntervalos}</div>
-        </div>
-        <div class="grafico-stat-card">
-            <div class="grafico-stat-label">Datos reales</div>
-            <div class="grafico-stat-valor stat-real">${cantidadReales}</div>
-        </div>
-    `;
+    // ------------------------------------------------------
+    // Stats de datos reales: solo con gdFiltroReales activo
+    // ------------------------------------------------------
+    if (filtros.reales) {
+        html += `
+            <div class="grafico-stat-card">
+                <div class="grafico-stat-label">Datos reales</div>
+                <div class="grafico-stat-valor stat-real">${cantidadReales}</div>
+            </div>
+        `;
+    }
 
     cont.innerHTML = html;
 };

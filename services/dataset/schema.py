@@ -1,14 +1,11 @@
 """
 Detección dinámica de columnas del dataset.
-
 Reglas actuales:
 - Columnas A a K: composición.
 - Columna L en adelante: variables entrenables.
 - La columna de temperatura es feature.
 """
-
 import pandas as pd
-
 from ..constants import (
     SUFIJO_COMPOSICION,
     PREFERENCIA_TEMPERATURA,
@@ -19,7 +16,6 @@ from ..constants import (
     etiqueta_temperatura,
     normalizar_nombre_columna,
 )
-
 from .loader import cargar_dataset
 
 
@@ -29,10 +25,8 @@ def _es_columna_numerica(df, columna):
     """
     if columna not in df.columns:
         return False
-
     if pd.api.types.is_numeric_dtype(df[columna]):
         return True
-
     try:
         serie = pd.to_numeric(df[columna], errors="coerce")
         return bool(serie.notna().any())
@@ -43,48 +37,23 @@ def _es_columna_numerica(df, columna):
 def _columnas_composicion(df):
     """
     Devuelve las columnas de composición.
-
-    IMPORTANTE:
-    El dataset actual tiene esta estructura:
-
-    - Columnas A a K: elementos de composición.
-    - Columna L en adelante: variables a modelar.
-
-    Por eso NO alcanza con buscar todas las columnas terminadas
-    en '_pct', porque puede haber variables objetivo que también
-    terminen en '_pct', por ejemplo:
-
-    - C_libre_pct
-    - Fraccion_Cristalina_pct
-
-    Esas columnas NO son elementos de la mezcla: son variables
-    entrenables y están de la columna L hacia adelante.
-
-    Regla aplicada:
-
-    - Solo se consideran composición las columnas terminadas en
-      '_pct' que estén dentro de las primeras
-      CANTIDAD_COLUMNAS_COMPOSICION columnas del Excel.
+    Solo se consideran composición las columnas terminadas en
+    '_pct' que estén dentro de las primeras
+    CANTIDAD_COLUMNAS_COMPOSICION columnas del Excel.
     """
     columnas = []
     limite = int(CANTIDAD_COLUMNAS_COMPOSICION)
-
     for indice, col in enumerate(df.columns):
         if indice >= limite:
             break
-
         if str(col).lower().endswith(SUFIJO_COMPOSICION):
             columnas.append(col)
-
     return columnas
 
 
 def obtener_columnas_composicion(df):
     """
     Wrapper público de _columnas_composicion().
-
-    Se usa también desde dataset_upload_service para validar
-    archivos subidos por el administrador.
     """
     return _columnas_composicion(df)
 
@@ -97,90 +66,57 @@ def detectar_columna_temperatura(columnas):
         normalizar_nombre_columna(c): c
         for c in columnas
     }
-
     for nombre in PREFERENCIA_TEMPERATURA:
         clave = normalizar_nombre_columna(nombre)
-
         if clave in mapa_normalizado:
             return mapa_normalizado[clave]
-
     for col in columnas:
         if es_columna_temperatura(col):
             return col
-
     return None
 
 
 def obtener_feature_columns(df):
     """
     Devuelve las features:
-
     - columnas de composición A-K terminadas en _pct
     - columna de temperatura, si existe
     """
     composicion = _columnas_composicion(df)
     temperatura = detectar_columna_temperatura(df.columns)
-
     features = list(composicion)
-
     if temperatura is not None and temperatura in df.columns:
         if temperatura not in features:
             features.append(temperatura)
-
     return features
 
 
 def obtener_target_columns(df):
     """
     Devuelve las variables a modelar (targets).
-
-    Regla:
-
-    - Las columnas de composición son las primeras 11 columnas
-      del dataset (A-K) que terminan en '_pct'.
-    - La columna de temperatura, si existe, es feature.
-    - Las variables entrenables se buscan desde la columna L
-      en adelante, es decir, desde el índice 11.
-
-    Esto evita que variables objetivo que estén en columnas
-    posteriores, pero que terminen en '_pct', sean tratadas
-    como elementos de composición.
     """
     features = obtener_feature_columns(df)
     feature_set = set(features)
     limite = int(CANTIDAD_COLUMNAS_COMPOSICION)
-
     targets = []
-
     for indice, col in enumerate(df.columns):
         if col in feature_set:
             continue
-
-        # No convertir en target ninguna columna del bloque inicial
-        # de composición (A-K), salvo que ya sea feature por temperatura.
         if indice < limite:
             continue
-
         if _es_columna_numerica(df, col):
             targets.append(col)
-
     return targets
 
 
 def obtener_esquema_dataset(user_id=None):
     """
-    Devuelve el esquema dinámico del dataset:
-
-    - elementos de composición
-    - columna de temperatura
-    - variables entrenables
-    - variable entrenable por defecto
-    - features
+    Devuelve el esquema dinámico del dataset global.
+    El parámetro user_id se mantiene por compatibilidad pero se ignora.
     """
     df = cargar_dataset(user_id)
 
     columnas_composicion = _columnas_composicion(df)
-
     elementos = [
         str(col)[: -len(SUFIJO_COMPOSICION)]
         for col in columnas_composicion
@@ -190,7 +126,6 @@ def obtener_esquema_dataset(user_id=None):
     targets = obtener_target_columns(df)
 
     default_target = None
-
     if targets:
         preferidas = [
             "Densidad_kg_m3",
@@ -198,10 +133,8 @@ def obtener_esquema_dataset(user_id=None):
             "Densidad",
             "densidad",
         ]
-
         for candidata in preferidas:
             clave_candidata = normalizar_nombre_columna(candidata)
-
             match = next(
                 (
                     t for t in targets
@@ -209,16 +142,13 @@ def obtener_esquema_dataset(user_id=None):
                 ),
                 None
             )
-
             if match:
                 default_target = match
                 break
-
         if default_target is None:
             default_target = targets[0]
 
     variables_entrenables = []
-
     for target in targets:
         variables_entrenables.append({
             "valor": target,

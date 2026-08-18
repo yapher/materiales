@@ -10,7 +10,6 @@
             >
             Polvos Coladores
         </a>
-
         <button
             class="navbar-toggler"
             type="button"
@@ -21,41 +20,33 @@
         >
             <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navMenu">
             <div class="navbar-nav ms-auto align-items-lg-center">
-
                 <a class="nav-link {{ 'active' if request.endpoint == 'home.index' else '' }}" href="{{ url_for('home.index') }}">
                     <i class="bi bi-house"></i> Inicio
                 </a>
-
                 {% if usuario_sesion %}
-
                 <span id="badgeEntrenando" class="badge-entrenando" style="display:none;">
                     <span class="spinner-border" role="status"></span> Entrenando…
                 </span>
-
                 <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.index' else '' }}" href="{{ url_for('mezclas.index') }}">
                     <i class="bi bi-beaker"></i> Predicción
                 </a>
-
+                <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.dataset_view' else '' }}" href="{{ url_for('mezclas.dataset_view') }}">
+                    <i class="bi bi-table"></i> Dataset
+                </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('diagnostico.') else '' }}" href="{{ url_for('diagnostico.index') }}">
                     <i class="bi bi-clipboard2-pulse"></i> Diagnóstico
                 </a>
-
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('ayuda.') else '' }}" href="{{ url_for('ayuda.index') }}">
                     <i class="bi bi-question-circle"></i> Ayuda
                 </a>
-
                 {% if usuario_sesion.es_admin %}
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.') else '' }}" href="{{ url_for('admin.index') }}">
                     <i class="bi bi-sliders"></i> Admin
                 </a>
                 {% endif %}
-
-                <!-- ============================================ -->
-                <!-- DROPDOWN DE USUARIO (submenú de perfil)      -->
-                <!-- ============================================ -->
+                <!-- DROPDOWN DE USUARIO -->
                 <div class="nav-item dropdown">
                     <a
                         class="nav-link nav-link-usuario dropdown-toggle"
@@ -78,7 +69,6 @@
                         <span class="badge-admin">admin</span>
                         {% endif %}
                     </a>
-
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <h6 class="dropdown-header">
@@ -104,18 +94,14 @@
                         </li>
                     </ul>
                 </div>
-
                 {% else %}
-
                 <a class="nav-link" href="{{ url_for('auth.login') }}">
                     <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
                 </a>
                 <a class="nav-link" href="{{ url_for('auth.registro') }}">
                     <i class="bi bi-person-plus"></i> Registrarse
                 </a>
-
                 {% endif %}
-
             </div>
         </div>
     </div>
