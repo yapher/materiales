@@ -35,10 +35,20 @@ Gráfico densidad vs. temperatura (modular)
 <script src="{{ url_for('static', filename='js/grafico_densidad/08-init.js') }}"></script>
 
 <!-- ==========================================================
-Scripts funcionales existentes
+Gráfico de tarta 3D (modular)
+========================================================== -->
+<script src="{{ url_for('static', filename='js/grafico_tarta/00-namespace.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_tarta/01-helpers.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_tarta/02-construccion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_tarta/03-render.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_tarta/04-animacion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_tarta/05-interaccion.js') }}"></script>
+<script src="{{ url_for('static', filename='js/grafico_tarta/06-init.js') }}"></script>
+
+<!-- ==========================================================
+Scripts funcionales
 ========================================================== -->
 <script src="{{ url_for('static', filename='js/flujo.js') }}"></script>
 <script src="{{ url_for('static', filename='js/configuracion_entrenamiento.js') }}"></script>
-<script src="{{ url_for('static', filename='js/grafico_tarta.js') }}"></script>
 
 {% block extra_js %}{% endblock %}
