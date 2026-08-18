@@ -28,22 +28,25 @@
         return document.getElementById("configAdvertencia");
     }
 
-    function defaultVariable() {
+    function defaultVariables() {
         const modal = modalElement();
-
         if (!modal) {
             const disponibles = variablesDisponibles();
-            return disponibles.length ? disponibles[0] : "";
+            return disponibles.slice(0, 2);
         }
-
-        const desdeModal = modal.dataset.variableDefault || "";
-
-        if (desdeModal && variablesDisponibles().includes(desdeModal)) {
-            return desdeModal;
+        const desdeModal = modal.dataset.variablesDefault || "";
+        const lista = desdeModal
+            .split(",")
+            .map(v => v.trim())
+            .filter(v => v);
+        const validas = lista.filter(v =>
+            variablesDisponibles().includes(v)
+        );
+        if (validas.length > 0) {
+            return validas;
         }
-
         const disponibles = variablesDisponibles();
-        return disponibles.length ? disponibles[0] : "";
+        return disponibles.slice(0, 2);
     }
 
     function guardarSeleccion() {
@@ -53,31 +56,32 @@
                 JSON.stringify(Array.from(seleccion))
             );
         } catch (error) {
-            console.warn("No se pudo guardar la configuración en localStorage", error);
+            console.warn(
+                "No se pudo guardar la configuración en localStorage",
+                error
+            );
         }
     }
 
     function leerSeleccionGuardada() {
         try {
             let guardado = localStorage.getItem(STORAGE_KEY);
-
             if (guardado === null) {
                 guardado = localStorage.getItem(OLD_STORAGE_KEY);
             }
-
             if (guardado === null) {
                 return [];
             }
-
             const lista = JSON.parse(guardado);
-
             if (!Array.isArray(lista)) {
                 return [];
             }
-
             return lista;
         } catch (error) {
-            console.warn("No se pudo leer la configuración guardada", error);
+            console.warn(
+                "No se pudo leer la configuración guardada",
+                error
+            );
             return [];
         }
     }
@@ -85,40 +89,32 @@
     function cargarSeleccion() {
         const disponibles = variablesDisponibles();
         const guardado = leerSeleccionGuardada();
-
         const validas = guardado.filter(variable =>
             disponibles.includes(variable)
         );
-
         if (validas.length > 0) {
             seleccion = new Set(validas);
         } else {
-            const def = defaultVariable();
-            seleccion = def ? new Set([def]) : new Set();
+            const defs = defaultVariables();
+            seleccion = new Set(defs);
         }
-
         guardarSeleccion();
     }
 
     function setAdvertencia(visible) {
         const alerta = advertenciaElement();
-
         if (!alerta) {
             return;
         }
-
         alerta.style.display = visible ? "block" : "none";
     }
 
     function actualizarContador() {
         const contador = contadorElement();
-
         if (!contador) {
             return;
         }
-
         const cantidad = seleccion.size;
-
         if (cantidad === 1) {
             contador.textContent = "1 variable seleccionada";
         } else {
@@ -130,16 +126,17 @@
         botonesVariables().forEach(boton => {
             const variable = boton.dataset.variable;
             const activo = seleccion.has(variable);
-
             boton.classList.toggle("activo", activo);
-            boton.setAttribute("aria-pressed", activo ? "true" : "false");
+            boton.setAttribute(
+                "aria-pressed",
+                activo ? "true" : "false"
+            );
         });
     }
 
     function actualizarUI() {
         actualizarBotones();
         actualizarContador();
-
         if (seleccion.size > 0) {
             setAdvertencia(false);
         }
@@ -149,26 +146,18 @@
         if (!variable) {
             return;
         }
-
         if (seleccion.has(variable)) {
             seleccion.delete(variable);
         } else {
             seleccion.add(variable);
         }
-
         guardarSeleccion();
         actualizarUI();
     }
 
     function seleccionarDefault() {
-        const def = defaultVariable();
-
-        if (!def) {
-            seleccion.clear();
-        } else {
-            seleccion = new Set([def]);
-        }
-
+        const defs = defaultVariables();
+        seleccion = new Set(defs);
         guardarSeleccion();
         actualizarUI();
     }
@@ -188,9 +177,7 @@
             setAdvertencia(false);
             return true;
         }
-
         setAdvertencia(true);
-
         if (window.mostrarToast) {
             window.mostrarToast(
                 "Atención",
@@ -198,18 +185,17 @@
                 true
             );
         }
-
         if (window.setMensaje) {
-            window.setMensaje("Seleccioná al menos una variable para modelar.");
+            window.setMensaje(
+                "Seleccioná al menos una variable para modelar."
+            );
         }
-
         const modal = modalElement();
-
         if (modal && typeof bootstrap !== "undefined") {
-            const instancia = bootstrap.Modal.getOrCreateInstance(modal);
+            const instancia =
+                bootstrap.Modal.getOrCreateInstance(modal);
             instancia.show();
         }
-
         return false;
     }
 
@@ -220,14 +206,14 @@
             });
         });
 
-        const btnDefault = document.getElementById("btnConfigurarDensidad");
-
+        const btnDefault =
+            document.getElementById("btnConfigurarDensidad");
         if (btnDefault) {
             btnDefault.addEventListener("click", seleccionarDefault);
         }
 
-        const btnLimpiar = document.getElementById("btnLimpiarVariables");
-
+        const btnLimpiar =
+            document.getElementById("btnLimpiarVariables");
         if (btnLimpiar) {
             btnLimpiar.addEventListener("click", limpiarSeleccion);
         }
@@ -243,11 +229,9 @@
         if (window.FlujoModelo) {
             window.FlujoModelo.setEntrenamientoCorriendo(true);
         }
-
         if (window.setOcupado) {
             window.setOcupado(true);
         }
-
         if (window.setMensaje) {
             window.setMensaje("Iniciando modelado...");
         }
@@ -265,33 +249,32 @@
 
             if (respuesta.status === 409) {
                 if (window.setMensaje) {
-                    window.setMensaje("Ya hay un entrenamiento en curso.");
+                    window.setMensaje(
+                        "Ya hay un entrenamiento en curso."
+                    );
                 }
-
                 if (window.iniciarPollEntrenamiento) {
                     window.iniciarPollEntrenamiento();
                 }
-
                 return;
             }
 
             if (!respuesta.ok || data.error) {
-                throw new Error(data.error || "No se pudo iniciar el modelado");
+                throw new Error(
+                    data.error || "No se pudo iniciar el modelado"
+                );
             }
 
             if (window.iniciarPollEntrenamiento) {
                 window.iniciarPollEntrenamiento();
             }
-
         } catch (error) {
             if (window.FlujoModelo) {
                 window.FlujoModelo.setEntrenamientoCorriendo(false);
             }
-
             if (window.setMensaje) {
                 window.setMensaje(error.message);
             }
-
             if (window.mostrarToast) {
                 window.mostrarToast(
                     "Error de modelado",
@@ -299,7 +282,6 @@
                     true
                 );
             }
-
             if (window.setOcupado) {
                 window.setOcupado(false);
             }
@@ -317,7 +299,6 @@
         if (!modalElement()) {
             return;
         }
-
         cargarSeleccion();
         bindBotones();
         actualizarUI();

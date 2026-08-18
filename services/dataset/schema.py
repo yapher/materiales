@@ -4,6 +4,7 @@ Reglas actuales:
 - Columnas A a K: composición.
 - Columna L en adelante: variables entrenables.
 - La columna de temperatura es feature.
+- Variables por defecto: Densidad + Basicidad.
 """
 import pandas as pd
 from ..constants import (
@@ -109,10 +110,40 @@ def obtener_target_columns(df):
     return targets
 
 
+def _buscar_variable_default(targets, nombres_preferidos, palabra_clave):
+    """
+    Busca una variable default entre los targets.
+    1. Primero busca por coincidencia exacta con nombres_preferidos.
+    2. Si no encuentra, busca por coincidencia parcial (palabra_clave).
+    Devuelve el nombre de la columna o None.
+    """
+    # Búsqueda exacta
+    for candidata in nombres_preferidos:
+        clave = normalizar_nombre_columna(candidata)
+        match = next(
+            (
+                t for t in targets
+                if normalizar_nombre_columna(t) == clave
+            ),
+            None
+        )
+        if match:
+            return match
+    # Búsqueda parcial (por si el nombre es ligeramente distinto)
+    for t in targets:
+        if palabra_clave in normalizar_nombre_columna(t):
+            return t
+    return None
+
+
 def obtener_esquema_dataset(user_id=None):
     """
-    Devuelve el esquema dinámico del dataset global.
-    El parámetro user_id se mantiene por compatibilidad pero se ignora.
+    Devuelve el esquema dinámico del dataset:
+    - elementos de composición
+    - columna de temperatura
+    - variables entrenables
+    - variables entrenables por defecto (Densidad + Basicidad)
+    - features
     """
     df = cargar_dataset(user_id)
 
@@ -125,28 +156,32 @@ def obtener_esquema_dataset(user_id=None):
     columna_temperatura = detectar_columna_temperatura(df.columns)
     targets = obtener_target_columns(df)
 
-    default_target = None
-    if targets:
-        preferidas = [
-            "Densidad_kg_m3",
-            "densidad_kg_m3",
-            "Densidad",
-            "densidad",
-        ]
-        for candidata in preferidas:
-            clave_candidata = normalizar_nombre_columna(candidata)
-            match = next(
-                (
-                    t for t in targets
-                    if normalizar_nombre_columna(t) == clave_candidata
-                ),
-                None
-            )
-            if match:
-                default_target = match
-                break
-        if default_target is None:
-            default_target = targets[0]
+    # ==========================================================
+    # VARIABLES POR DEFECTO: Densidad + Basicidad
+    # ==========================================================
+    variables_default = []
+
+    # Buscar Densidad
+    densidad = _buscar_variable_default(
+        targets,
+        ["Densidad_kg_m3", "densidad_kg_m3", "Densidad", "densidad"],
+        "densidad"
+    )
+    if densidad:
+        variables_default.append(densidad)
+
+    # Buscar Basicidad
+    basicidad = _buscar_variable_default(
+        targets,
+        ["Basicidad_CaO_SiO2", "basicidad_cao_sio2", "Basicidad", "basicidad"],
+        "basicidad"
+    )
+    if basicidad:
+        variables_default.append(basicidad)
+
+    # Si no se encontró ninguna, usar la primera disponible
+    if not variables_default and targets:
+        variables_default = [targets[0]]
 
     variables_entrenables = []
     for target in targets:
@@ -154,7 +189,7 @@ def obtener_esquema_dataset(user_id=None):
             "valor": target,
             "etiqueta": etiqueta_amigable(target),
             "descripcion": descripcion_variable(target),
-            "por_defecto": target == default_target,
+            "por_defecto": target in variables_default,
         })
 
     return {
@@ -163,6 +198,6 @@ def obtener_esquema_dataset(user_id=None):
         "temperatura_column": columna_temperatura,
         "temperatura_etiqueta": etiqueta_temperatura(columna_temperatura),
         "variables_entrenables": variables_entrenables,
-        "variable_entrenable_default": default_target,
+        "variables_entrenable_default": variables_default,
         "features": obtener_feature_columns(df),
     }

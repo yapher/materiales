@@ -4,15 +4,28 @@
             <i class="bi bi-beaker"></i> Composición de la mezcla
         </h5>
 
-        <div class="row g-4">
-            <div class="col-lg-6 d-flex flex-column justify-content-center">
-                {% include "partials/mezclas/form_elemento.html" %}
-                {% include "partials/mezclas/form_temperatura.html" %}
-                {% include "partials/mezclas/mix_list.html" %}
-            </div>
-            <div class="col-lg-6">
-                {% include "partials/mezclas/grafico_tarta_panel.html" %}
-            </div>
+        <!-- Formulario a ancho completo -->
+        {% include "partials/mezclas/form_elemento.html" %}
+        {% include "partials/mezclas/form_temperatura.html" %}
+        {% include "partials/mezclas/mix_list.html" %}
+
+        <!-- Switch para mostrar/ocultar la tarta 3D -->
+        <div class="form-check form-switch mt-3 mb-3 check-tarta-wrapper">
+            <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="checkGraficoTarta"
+            >
+            <label class="form-check-label" for="checkGraficoTarta">
+                <i class="bi bi-pie-chart-fill"></i>
+                Distribución 3D de la mezcla
+            </label>
+        </div>
+
+        <!-- Panel de la tarta 3D (oculto por defecto) -->
+        <div id="panelGraficoTarta" style="display:none;">
+            {% include "partials/mezclas/grafico_tarta_panel.html" %}
         </div>
     </div>
 </div>

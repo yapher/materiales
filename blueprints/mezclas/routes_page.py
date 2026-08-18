@@ -1,32 +1,25 @@
 """
 Rutas principales de la página de predicción.
-
 Incluye:
 - vista principal
 - carga de dataset para el flujo
 - estado general del usuario
 """
-
 import logging
-
 from flask import (
     render_template,
     jsonify,
 )
-
 from services.excel_service import (
     cargar_excel_service,
     obtener_esquema_dataset,
 )
-
 from services.mezcla_service import estado_service
-
 from utils import (
     manejar_errores_json,
     login_required,
     login_required_json,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +37,6 @@ def register(bp):
     def index():
         """
         Página principal de predicción.
-
         El esquema de columnas se detecta dinámicamente desde
         el dataset del usuario.
         """
@@ -54,13 +46,12 @@ def register(bp):
             logger.exception(
                 "No se pudo detectar el esquema del dataset"
             )
-
             esquema = {
                 "elementos": [],
                 "temperatura_column": None,
                 "temperatura_etiqueta": "Temperatura",
                 "variables_entrenables": [],
-                "variable_entrenable_default": None,
+                "variables_entrenable_default": [],
             }
 
         return render_template(
@@ -75,8 +66,9 @@ def register(bp):
                 "variables_entrenables",
                 []
             ),
-            variable_entrenable_default=esquema.get(
-                "variable_entrenable_default"
+            variables_entrenable_default=esquema.get(
+                "variables_entrenable_default",
+                []
             ),
         )
 
@@ -92,7 +84,6 @@ def register(bp):
         información básica.
         """
         info = cargar_excel_service()
-
         return jsonify({
             "filas": info["filas"],
             "columnas": info["columnas"],
@@ -108,7 +99,6 @@ def register(bp):
     def estado():
         """
         Estado general del usuario actual:
-
         - dataset cargado
         - filas y columnas
         - modelo en memoria

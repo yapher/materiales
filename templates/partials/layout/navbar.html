@@ -32,9 +32,6 @@
                 <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.index' else '' }}" href="{{ url_for('mezclas.index') }}">
                     <i class="bi bi-beaker"></i> Predicción
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'mezclas.dataset_view' else '' }}" href="{{ url_for('mezclas.dataset_view') }}">
-                    <i class="bi bi-table"></i> Dataset
-                </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('diagnostico.') else '' }}" href="{{ url_for('diagnostico.index') }}">
                     <i class="bi bi-clipboard2-pulse"></i> Diagnóstico
                 </a>

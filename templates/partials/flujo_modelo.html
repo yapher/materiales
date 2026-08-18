@@ -39,6 +39,7 @@
                         Primero se debe cargar el dataset.
                     </div>
                     <div class="flujo-acciones d-flex align-items-center gap-2">
+                        {% if usuario_sesion and usuario_sesion.es_admin %}
                         <button
                             type="button"
                             class="btn-config-redondo"
@@ -48,6 +49,7 @@
                         >
                             <i class="bi bi-gear-fill"></i>
                         </button>
+                        {% endif %}
                         <button id="btnEntrenar" class="btn btn-accion btn-sm" onclick="entrenarModelo()" disabled>
                             <i class="bi bi-gear-wide-connected"></i> Modelar
                         </button>

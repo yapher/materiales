@@ -1,6 +1,5 @@
 """
 Entrenamiento de modelos.
-Ahora usa el dataset GLOBAL (maestro) en lugar de datasets personales.
 Responsabilidades:
 - normalizar variables objetivo solicitadas
 - iniciar entrenamiento en background
@@ -33,17 +32,17 @@ logger = logging.getLogger(__name__)
 def _normalizar_targets(targets, user_id=None):
     """
     Normaliza la lista de variables a entrenar.
-    Si targets es None, usa la variable por defecto detectada
-    dinámicamente desde el dataset.
+    Si targets es None, usa las variables por defecto detectadas
+    dinámicamente desde el dataset (Densidad + Basicidad).
     """
     if targets is None:
         esquema = obtener_esquema_dataset(user_id)
-        default_target = esquema.get("variable_entrenable_default")
-        if not default_target:
+        defaults = esquema.get("variables_entrenable_default", [])
+        if not defaults:
             raise ValueError(
                 "El dataset actual no tiene variables entrenables detectadas."
             )
-        return [default_target]
+        return list(defaults)
 
     if not isinstance(targets, list):
         raise ValueError(
@@ -103,12 +102,11 @@ def iniciar_entrenamiento(targets=None):
 def _entrenar_en_background(user_id, lock, targets):
     """
     Entrenamiento real en background.
-    Usa el dataset GLOBAL (maestro).
+    Este método corre en un hilo separado para no bloquear
+    la interfaz web.
     """
     try:
-        # Se usa el dataset global (maestro)
         df_original = cargar_dataset(user_id)
-
         df, info_filtrado = filtrar_dataset_entrenamiento(df_original)
 
         logger.info(

@@ -3,7 +3,7 @@
     id="modalConfiguracionEntrenamiento"
     tabindex="-1"
     aria-hidden="true"
-    data-variable-default="{{ variable_entrenable_default or '' }}"
+    data-variables-default="{{ variables_entrenable_default | join(',') if variables_entrenable_default else '' }}"
 >
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content panel configuracion-entrenamiento">
@@ -18,23 +18,20 @@
                     aria-label="Cerrar"
                 ></button>
             </div>
-
             <div class="modal-body">
                 <p class="text-muted mb-3">
                     Seleccioná las variables que querés modelar.
                     Las variables disponibles se detectan automáticamente
                     desde el dataset actual.
                 </p>
-
                 <div class="config-acciones mb-3">
                     <button
                         type="button"
                         class="btn btn-agregar btn-sm"
                         id="btnConfigurarDensidad"
                     >
-                        <i class="bi bi-star"></i> Usar variable por defecto
+                        <i class="bi bi-star"></i> Usar variables por defecto
                     </button>
-
                     <button
                         type="button"
                         class="btn btn-accion btn-sm"
@@ -43,39 +40,35 @@
                         <i class="bi bi-eraser"></i> Limpiar selección
                     </button>
                 </div>
-
                 {% if variables_entrenables %}
-                    <div id="configVariablesGrid" class="config-variables-grid">
-                        {% for variable in variables_entrenables %}
-                            <button
-                                type="button"
-                                class="variable-toggle"
-                                data-variable="{{ variable.valor }}"
-                                data-etiqueta="{{ variable.etiqueta }}"
-                                aria-pressed="false"
-                                title="{{ variable.descripcion | default(variable.etiqueta) }}"
-                            >
-                                <span class="variable-toggle-check">
-                                    <i class="bi bi-check-lg"></i>
-                                </span>
-
-                                <span class="variable-toggle-texto">
-                                    {{ variable.etiqueta }}
-                                </span>
-
-                                <span class="variable-toggle-codigo">
-                                    {{ variable.valor }}
-                                </span>
-                            </button>
-                        {% endfor %}
-                    </div>
+                <div id="configVariablesGrid" class="config-variables-grid">
+                    {% for variable in variables_entrenables %}
+                    <button
+                        type="button"
+                        class="variable-toggle"
+                        data-variable="{{ variable.valor }}"
+                        data-etiqueta="{{ variable.etiqueta }}"
+                        aria-pressed="false"
+                        title="{{ variable.descripcion | default(variable.etiqueta) }}"
+                    >
+                        <span class="variable-toggle-check">
+                            <i class="bi bi-check-lg"></i>
+                        </span>
+                        <span class="variable-toggle-texto">
+                            {{ variable.etiqueta }}
+                        </span>
+                        <span class="variable-toggle-codigo">
+                            {{ variable.valor }}
+                        </span>
+                    </button>
+                    {% endfor %}
+                </div>
                 {% else %}
-                    <div class="config-advertencia">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        No se detectaron variables entrenables en el dataset actual.
-                    </div>
+                <div class="config-advertencia">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    No se detectaron variables entrenables en el dataset actual.
+                </div>
                 {% endif %}
-
                 <div
                     id="configAdvertencia"
                     class="config-advertencia mt-3"
@@ -85,7 +78,6 @@
                     Tenés que seleccionar al menos una variable para modelar.
                 </div>
             </div>
-
             <div class="modal-footer">
                 <span
                     id="configContador"
@@ -93,7 +85,6 @@
                 >
                     0 variables seleccionadas
                 </span>
-
                 <button
                     type="button"
                     class="btn btn-agregar"
